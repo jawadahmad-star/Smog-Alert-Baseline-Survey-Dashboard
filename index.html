@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smog Alert Baseline Survey — Research Solutions</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --rs-red:#E8192C; --rs-red-dark:#B5101E; --rs-red-mid:#C41020; --rs-red-muted:#F47885; --rs-red-light:#FDECEA; --rs-red-50:#FFF5F5;
+      --rs-navy:#2D3450; --rs-navy-dark:#1E2438; --rs-navy-mid:#3D4566; --rs-navy-soft:#6B7494; --rs-navy-light:#E8EAF2; --rs-navy-50:#F2F3F8;
+      --rs-cream:#FAF8F4; --white:#FFFFFF;
+      --teal-700:#0E7490; --teal-500:#0891B2; --teal-300:#67E8F9; --teal-100:#CFFAFE; --teal-50:#ECFEFF;
+      --amber-600:#D97706; --amber-500:#F59E0B; --amber-400:#FBBF24; --amber-100:#FEF3C7; --amber-50:#FFFBEB;
+      --purple-700:#6D28D9; --purple-500:#8B5CF6; --purple-100:#EDE9FE; --purple-50:#F5F3FF;
+      --green-600:#16A34A; --green-100:#DCFCE7; --green-50:#F0FDF4;
+      --n-900:#0f172a; --n-800:#1e293b; --n-700:#334155; --n-600:#475569; --n-400:#94a3b8; --n-200:#e2e8f0; --n-100:#f1f5f9;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'Inter',sans-serif; background:var(--rs-cream); color:var(--rs-navy); min-height:100vh; }
+
+    .header { background:var(--rs-navy); color:white; position:sticky; top:0; z-index:100; box-shadow:0 4px 24px rgba(30,36,56,.40); border-bottom:3px solid var(--rs-red); }
+    .header-inner { max-width:1440px; margin:0 auto; padding:0 32px; display:flex; flex-direction:column; }
+    .header-top { display:flex; justify-content:space-between; align-items:center; padding:14px 0 12px; border-bottom:1px solid rgba(255,255,255,.08); }
+    .header-logo-wrap img { height:46px; display:block; }
+    .header-study { text-align:center; flex:1; padding:0 24px; }
+    .header-study-title { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:#fff; letter-spacing:-.2px; }
+    .header-study-sub { font-size:11px; color:rgba(255,255,255,.55); letter-spacing:.6px; text-transform:uppercase; margin-top:3px; }
+    .header-meta { text-align:right; font-size:12px; color:rgba(255,255,255,.55); line-height:1.7; }
+    .header-meta strong { color:rgba(255,255,255,.9); font-size:13px; }
+    .header-pill { display:inline-block; background:var(--rs-red); color:#fff; font-size:10px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; padding:3px 10px; border-radius:99px; margin-top:4px; }
+
+    .nav-tabs { display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; }
+    .nav-tabs::-webkit-scrollbar { display:none; }
+    .nav-tab { padding:10px 15px; font-size:12.5px; font-weight:500; color:rgba(255,255,255,.55); cursor:pointer; border-radius:8px 8px 0 0; border:none; background:transparent; white-space:nowrap; transition:all .2s; letter-spacing:.2px; font-family:'Inter',sans-serif; }
+    .nav-tab:hover { color:rgba(255,255,255,.9); background:rgba(255,255,255,.06); }
+    .nav-tab.active { color:var(--rs-navy); background:var(--rs-cream); font-weight:700; border-top:2px solid var(--rs-red); }
+
+    .main { max-width:1440px; margin:0 auto; padding:28px 32px 60px; }
+    .panel { display:none; }
+    .panel.active { display:block; animation:fadeIn .3s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+    .section-header { margin-bottom:28px; padding-bottom:16px; border-bottom:2px solid var(--rs-navy-light); display:flex; align-items:flex-start; gap:14px; }
+    .section-header-accent { width:4px; min-height:52px; border-radius:99px; background:var(--rs-red); flex-shrink:0; margin-top:4px; }
+    .section-header h2 { font-size:26px; font-weight:700; color:var(--rs-navy); font-family:'Playfair Display',serif; }
+    .section-header p { font-size:14px; color:var(--n-600); margin-top:6px; line-height:1.65; max-width:820px; }
+
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:28px; }
+    .kpi-card { background:white; border-radius:14px; padding:22px 20px; box-shadow:0 1px 4px rgba(45,52,80,.07),0 4px 16px rgba(45,52,80,.05); border-left:4px solid var(--rs-red); transition:transform .2s,box-shadow .2s; position:relative; overflow:hidden; }
+    .kpi-card::after { content:''; position:absolute; top:0; right:0; width:80px; height:80px; background:var(--rs-red-50); border-radius:0 14px 0 80px; }
+    .kpi-card:hover { transform:translateY(-2px); box-shadow:0 6px 24px rgba(45,52,80,.12); }
+    .kpi-card.navy { border-left-color:var(--rs-navy); } .kpi-card.navy::after { background:var(--rs-navy-50); }
+    .kpi-card.amber { border-left-color:var(--amber-500); } .kpi-card.amber::after { background:var(--amber-50); }
+    .kpi-card.teal { border-left-color:var(--teal-500); } .kpi-card.teal::after { background:var(--teal-50); }
+    .kpi-card.purple { border-left-color:var(--purple-500); } .kpi-card.purple::after { background:var(--purple-50); }
+    .kpi-card.green { border-left-color:var(--green-600); } .kpi-card.green::after { background:var(--green-50); }
+    .kpi-icon { font-size:26px; margin-bottom:10px; position:relative; z-index:1; }
+    .kpi-value { font-size:32px; font-weight:800; color:var(--rs-navy); line-height:1; position:relative; z-index:1; }
+    .kpi-label { font-size:12px; color:var(--n-600); margin-top:6px; text-transform:uppercase; letter-spacing:.5px; font-weight:500; position:relative; z-index:1; }
+    .kpi-delta { font-size:11px; font-weight:600; margin-top:8px; padding:3px 8px; border-radius:99px; display:inline-block; position:relative; z-index:1; }
+    .kpi-delta.up { background:var(--teal-100); color:var(--teal-700); }
+    .kpi-delta.down { background:var(--rs-red-light); color:var(--rs-red-dark); }
+    .kpi-delta.neutral { background:var(--amber-100); color:var(--amber-600); }
+    .kpi-delta.navy { background:var(--rs-navy-light); color:var(--rs-navy); }
+
+    .chart-grid { display:grid; gap:20px; margin-bottom:24px; }
+    .chart-grid.cols-2 { grid-template-columns:repeat(2,1fr); }
+    .chart-grid.cols-3 { grid-template-columns:repeat(3,1fr); }
+    .chart-card { background:white; border-radius:14px; padding:24px; box-shadow:0 1px 4px rgba(45,52,80,.07),0 4px 16px rgba(45,52,80,.05); }
+    .chart-card.full { grid-column:1/-1; }
+    .chart-card h3 { font-size:14.5px; font-weight:700; color:var(--rs-navy); margin-bottom:4px; padding-left:10px; border-left:3px solid var(--rs-red); }
+    .chart-desc { font-size:12px; color:var(--n-600); margin:6px 0 18px 13px; line-height:1.5; }
+    .chart-wrap canvas { max-height:280px; }
+    .chart-wrap.tall canvas { max-height:360px; }
+
+    .insight-box { border-radius:12px; padding:16px 20px; margin-bottom:20px; border-left:4px solid; font-size:13.5px; line-height:1.65; }
+    .insight-box.primary { background:var(--rs-red-light); border-color:var(--rs-red); color:#6B0A12; }
+    .insight-box.navy { background:var(--rs-navy-light); border-color:var(--rs-navy); color:var(--rs-navy-dark); }
+    .insight-box.amber { background:var(--amber-100); border-color:var(--amber-500); color:#78350f; }
+    .insight-box.teal { background:var(--teal-100); border-color:var(--teal-500); color:var(--teal-700); }
+    .insight-box.purple { background:var(--purple-100); border-color:var(--purple-500); color:var(--purple-700); }
+    .insight-box strong { font-weight:700; }
+    .insight-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+
+    .callout-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin-bottom:24px; }
+    .callout { border-radius:12px; padding:16px; display:flex; gap:12px; align-items:flex-start; }
+    .callout.primary { background:var(--rs-red-light); } .callout.navy { background:var(--rs-navy-light); }
+    .callout.amber { background:var(--amber-100); } .callout.teal { background:var(--teal-100); } .callout.purple { background:var(--purple-100); }
+    .callout-icon { font-size:24px; flex-shrink:0; margin-top:2px; }
+    .callout-body h4 { font-size:14px; font-weight:700; color:var(--rs-navy); }
+    .callout-body p { font-size:12.5px; color:var(--n-600); margin-top:4px; line-height:1.5; }
+
+    .footnote { font-size:11px; color:var(--n-400); margin-top:18px; padding-top:12px; border-top:1px solid var(--n-200); line-height:1.5; }
+    .page-footer { background:var(--rs-navy); color:rgba(255,255,255,.45); font-size:11.5px; text-align:center; padding:18px 32px; letter-spacing:.3px; border-top:3px solid var(--rs-red); margin-top:40px; }
+    .page-footer strong { color:rgba(255,255,255,.8); }
+
+    /* ===== data tables (enumerators / UC tracker) ===== */
+    .mz-toolbar { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:18px; }
+    .mz-search { flex:1; min-width:240px; padding:11px 16px; border:2px solid var(--n-200); border-radius:10px; font-family:'Inter',sans-serif; font-size:14px; color:var(--rs-navy); outline:none; transition:border-color .2s; }
+    .mz-search:focus { border-color:var(--rs-red); }
+    .mz-filter { padding:10px 14px; border:2px solid var(--n-200); border-radius:10px; font-family:'Inter',sans-serif; font-size:13px; color:var(--rs-navy); background:#fff; cursor:pointer; outline:none; }
+    .mz-filter:focus { border-color:var(--rs-red); }
+    .mz-count { font-size:12.5px; color:var(--n-600); font-weight:600; margin-left:auto; }
+    .mz-export { padding:10px 16px; border:none; border-radius:10px; background:var(--rs-navy); color:#fff; font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; cursor:pointer; transition:background .2s; }
+    .mz-export:hover { background:var(--rs-navy-mid); }
+
+    .mz-table-wrap { background:white; border-radius:14px; box-shadow:0 1px 4px rgba(45,52,80,.07),0 4px 16px rgba(45,52,80,.05); overflow:hidden; overflow-x:auto; }
+    .mz-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .mz-table th { background:var(--rs-navy); color:rgba(255,255,255,.92); font-weight:600; text-align:left; padding:13px 14px; font-size:11px; text-transform:uppercase; letter-spacing:.5px; cursor:pointer; user-select:none; white-space:nowrap; position:sticky; top:0; }
+    .mz-table th:hover { background:var(--rs-navy-mid); }
+    .mz-table th.num, .mz-table td.num { text-align:center; }
+    .mz-table th .arrow { font-size:9px; opacity:.6; margin-left:3px; }
+    .mz-table td { padding:11px 14px; border-bottom:1px solid var(--n-100); color:var(--n-700); }
+    .mz-table tbody tr:hover td { background:var(--rs-navy-50); }
+    .mz-table tbody tr:last-child td { border-bottom:none; }
+    .mz-mauza { font-weight:600; color:var(--rs-navy); }
+    .mz-tehsil { font-size:11px; color:var(--n-400); text-transform:uppercase; letter-spacing:.4px; }
+    .mz-bar { height:7px; width:90px; background:var(--n-100); border-radius:99px; overflow:hidden; display:inline-block; vertical-align:middle; margin-right:8px; }
+    .mz-bar > span { display:block; height:100%; border-radius:99px; }
+    .mz-pct { font-weight:700; font-size:12.5px; }
+    .mz-frac { font-weight:600; }
+    .mz-frac .done { color:var(--rs-navy); } .mz-frac .sep { color:var(--n-400); } .mz-frac .tgt { color:var(--n-400); }
+    .badge { display:inline-block; padding:3px 10px; border-radius:99px; font-size:11px; font-weight:600; white-space:nowrap; }
+    .badge-green { background:var(--green-100); color:var(--green-600); }
+    .badge-amber { background:var(--amber-100); color:var(--amber-600); }
+    .badge-grey  { background:var(--n-100);     color:var(--n-400); }
+    .badge-red   { background:var(--rs-red-light); color:var(--rs-red-dark); }
+
+    /* UC progress cards */
+    .land-prog-head { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:var(--rs-navy-soft); margin:26px 0 12px; }
+    .land-prog { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:6px; }
+    .land-card { background:white; border-radius:14px; padding:16px 18px; box-shadow:0 1px 4px rgba(45,52,80,.07),0 4px 16px rgba(45,52,80,.05); }
+    .land-card .lc-bin { font-size:13px; font-weight:700; color:var(--rs-navy); }
+    .land-card .lc-frac { margin-top:8px; font-size:20px; font-weight:800; color:var(--rs-navy); letter-spacing:-.3px; }
+    .land-card .lc-frac .lc-tgt { font-size:14px; font-weight:600; color:var(--n-400); }
+    .land-card .lc-track { height:8px; background:var(--n-100); border-radius:99px; overflow:hidden; margin:12px 0 8px; }
+    .land-card .lc-track > span { display:block; height:100%; border-radius:99px; }
+    .land-card .lc-foot { display:flex; justify-content:space-between; align-items:center; font-size:12px; }
+    .land-card .lc-pct { font-weight:800; }
+    @media (max-width:900px) { .land-prog { grid-template-columns:repeat(2,1fr); } }
+
+    @media (max-width:1000px) {
+      .chart-grid.cols-2,.chart-grid.cols-3 { grid-template-columns:1fr; }
+      .insight-row { grid-template-columns:1fr; }
+      .main { padding:20px 16px 40px; }
+    }
+    @media (max-width:640px) {
+      .kpi-grid { grid-template-columns:repeat(2,1fr); }
+      .header-inner { padding:0 16px; }
+      .header-study-title { font-size:16px; }
+    }
+
+    .live-banner { background:linear-gradient(90deg,var(--rs-navy-dark) 0%,var(--rs-navy) 100%); border-bottom:2px solid var(--amber-500); padding:10px 32px; display:flex; align-items:center; justify-content:center; gap:12px; font-size:12px; color:rgba(255,255,255,.75); letter-spacing:.3px; flex-wrap:wrap; }
+    .live-banner .live-pill { background:var(--amber-500); color:var(--rs-navy-dark); font-size:10px; font-weight:800; letter-spacing:.8px; text-transform:uppercase; padding:3px 10px; border-radius:99px; }
+    .live-banner .live-dot { width:8px; height:8px; border-radius:99px; background:#34d399; box-shadow:0 0 0 0 rgba(52,211,153,.6); animation:pulse 2s infinite; }
+    @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(52,211,153,.6);} 70%{box-shadow:0 0 0 8px rgba(52,211,153,0);} 100%{box-shadow:0 0 0 0 rgba(52,211,153,0);} }
+
+    /* ===== Password gate ===== */
+    #auth-gate { position:fixed; inset:0; z-index:9999; background:var(--rs-navy); display:flex; align-items:center; justify-content:center; flex-direction:column; }
+    .auth-card { background:white; border-radius:20px; padding:48px 44px; width:100%; max-width:420px; box-shadow:0 24px 80px rgba(0,0,0,.35); text-align:center; }
+    .auth-logo { width:52px; height:52px; background:var(--rs-red); border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:24px; margin:0 auto 20px; }
+    .auth-title { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; color:var(--rs-navy); margin-bottom:6px; }
+    .auth-subtitle { font-size:13px; color:var(--n-600); margin-bottom:28px; line-height:1.5; }
+    .auth-label { display:block; text-align:left; font-size:12px; font-weight:600; color:var(--rs-navy-soft); letter-spacing:.5px; text-transform:uppercase; margin-bottom:8px; }
+    .auth-input { width:100%; padding:13px 16px; border:2px solid var(--n-200); border-radius:10px; font-family:'Inter',sans-serif; font-size:15px; color:var(--rs-navy); outline:none; transition:border-color .2s; letter-spacing:.12em; }
+    .auth-input:focus { border-color:var(--rs-red); }
+    .auth-input.error { border-color:var(--rs-red); background:var(--rs-red-50); }
+    .auth-btn { width:100%; margin-top:18px; padding:14px; background:var(--rs-red); color:white; border:none; border-radius:10px; cursor:pointer; font-family:'Inter',sans-serif; font-size:15px; font-weight:700; letter-spacing:.2px; transition:background .2s,transform .1s; }
+    .auth-btn:hover { background:var(--rs-red-dark); } .auth-btn:active { transform:scale(.98); }
+    .auth-error { margin-top:12px; font-size:13px; color:var(--rs-red-dark); font-weight:600; min-height:20px; }
+    .auth-footer { margin-top:24px; font-size:11.5px; color:rgba(255,255,255,.35); letter-spacing:.3px; }
+    .auth-footer strong { color:rgba(255,255,255,.6); }
+  </style>
+</head>
+<body>
+
+<!-- ===== PASSWORD GATE ===== -->
+<div id="auth-gate">
+  <div class="auth-card">
+    <div class="auth-logo">🌫️</div>
+    <div class="auth-title">Smog Alert Baseline Survey</div>
+    <div class="auth-subtitle">This dashboard contains confidential field-monitoring data.<br>Please enter the access password to continue.</div>
+    <label class="auth-label" for="auth-pw">Access Password</label>
+    <input id="auth-pw" class="auth-input" type="password" placeholder="Enter password"
+           onkeydown="if(event.key==='Enter') checkAuth()" autocomplete="current-password" />
+    <button class="auth-btn" onclick="checkAuth()">Access Dashboard →</button>
+    <div class="auth-error" id="auth-error"></div>
+  </div>
+  <div class="auth-footer"><strong>Research Solutions</strong> &nbsp;·&nbsp; Confidential Field Data &nbsp;·&nbsp; www.rs.org.pk</div>
+</div>
+
+<div id="site-content" style="display:none">
+<!-- ===== HEADER ===== -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-top">
+      <div class="header-logo-wrap">
+        <img src="https://www.rs.org.pk/wp-content/uploads/2021/05/RS-Logo-White.png" alt="Research Solutions"
+             onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='flex';" />
+        <div id="logo-fallback" style="display:none; align-items:center; gap:10px;">
+          <div style="width:40px;height:40px;background:var(--rs-red);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;">🔍</div>
+          <div>
+            <div style="font-size:17px;font-weight:800;color:#fff;letter-spacing:-.3px;">Research Solutions</div>
+            <div style="font-size:9px;color:rgba(255,255,255,.5);letter-spacing:.8px;text-transform:uppercase;">M&amp;A Research Solutions LLC</div>
+          </div>
+        </div>
+      </div>
+      <div class="header-study">
+        <div class="header-study-title">Smog Alert Baseline Survey — Lahore</div>
+        <div class="header-study-sub">Air Quality Awareness · Beliefs &amp; Behaviour · Smog Alert App · Willingness to Pay · Field Monitoring</div>
+      </div>
+      <div class="header-meta">
+        <strong>Pakistan · Lahore District</strong><br>
+        <span id="meta-line">Shalamar Tehsil · Household Baseline</span><br>
+        <span class="header-pill" id="meta-pill">Pilot Tracker</span>
+      </div>
+    </div>
+    <nav class="nav-tabs" id="navTabs">
+      <button class="nav-tab active" onclick="showPanel('overview',this)">📊 Overview</button>
+      <button class="nav-tab" onclick="showPanel('demo',this)">👥 Demographics</button>
+      <button class="nav-tab" onclick="showPanel('health',this)">🏥 Health &amp; Exposure</button>
+      <button class="nav-tab" onclick="showPanel('aware',this)">🌫️ AQ Awareness</button>
+      <button class="nav-tab" onclick="showPanel('info',this)">📡 Info &amp; Trust</button>
+      <button class="nav-tab" onclick="showPanel('app',this)">📱 Smog Alert App</button>
+      <button class="nav-tab" onclick="showPanel('avoid',this)">😷 Avoidance</button>
+      <button class="nav-tab" onclick="showPanel('beliefs',this)">🧪 Beliefs &amp; Experiment</button>
+      <button class="nav-tab" onclick="showPanel('enforce',this)">🏛️ Enforcement</button>
+      <button class="nav-tab" onclick="showPanel('wtp',this)">💰 WTP &amp; Fairness</button>
+      <button class="nav-tab" onclick="showPanel('uc',this)">🗺️ UC Tracker</button>
+    </nav>
+  </div>
+</div>
+
+<div class="live-banner">
+  <span class="live-dot"></span>
+  <span class="live-pill">Pilot Data</span>
+  <span>This dashboard reflects <strong style="color:#fff;">real household-survey field data</strong> from the pilot. Last updated <strong id="banner-updated" style="color:#fff;">—</strong>.</span>
+  <span class="live-pill" id="banner-pill">SurveyCTO CAPI</span>
+</div>
+
+<!-- ===== MAIN ===== -->
+<div class="main">
+
+  <!-- OVERVIEW -->
+  <div class="panel active" id="panel-overview">
+    <div class="section-header">
+      <div class="section-header-accent"></div>
+      <div>
+        <h2>Survey at a Glance</h2>
+        <p>Real-time monitoring of the Smog Alert Baseline Survey in Shalamar Tehsil, Lahore. The study measures household experiences with air quality and smog — health impacts, beliefs about pollution sources, information channels, take-up of the Smog Alert mobile app, and willingness to pay for cleaner air — tracked against a 300-household sampling frame across 13 union councils, with a 3-arm randomized information experiment embedded in the interview.</p>
+      </div>
+    </div>
+    <div class="kpi-grid" id="ov-kpis"></div>
+    <div class="callout-row" id="ov-callouts"></div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card full">
+        <h3>Daily Field Activity</h3>
+        <div class="chart-desc">Doorstep attempts vs completed interviews per field day</div>
+        <div class="chart-wrap"><canvas id="chartDaily"></canvas></div>
+      </div>
+    </div>
+    <div class="chart-grid cols-3">
+      <div class="chart-card">
+        <h3>Overall Progress vs Target</h3>
+        <div class="chart-desc">Completed interviews against the 300-household sampling frame</div>
+        <div class="chart-wrap"><canvas id="chartProgress"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Completed by Treatment Arm</h3>
+        <div class="chart-desc">T1 (Lahore report) · T2 (Punjab report) · Control</div>
+        <div class="chart-wrap"><canvas id="chartArms"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Attempt Disposition</h3>
+        <div class="chart-desc">Outcome of every doorstep attempt so far</div>
+        <div class="chart-wrap"><canvas id="chartStatus"></canvas></div>
+      </div>
+    </div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card">
+        <h3>Attempts &amp; Completions by Union Council</h3>
+        <div class="chart-desc">Field coverage by UC visited so far</div>
+        <div class="chart-wrap"><canvas id="chartUC"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Interview Duration</h3>
+        <div class="chart-desc">Distribution of completed-interview length (minutes)</div>
+        <div class="chart-wrap"><canvas id="chartDur"></canvas></div>
+      </div>
+    </div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card full">
+        <h3>Enumerator Performance</h3>
+        <div class="chart-desc">Attempts, completions, consent rate and average duration per enumerator</div>
+        <div class="mz-table-wrap" style="box-shadow:none;border:1px solid var(--n-100);">
+          <table class="mz-table">
+            <thead><tr><th>Enumerator</th><th class="num">Field Days</th><th class="num">Attempts</th><th class="num">Completed</th><th class="num">Consent Rate</th><th class="num">Avg Duration (min)</th></tr></thead>
+            <tbody id="enum-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <p class="footnote" id="ov-footnote"></p>
+  </div>
+
+  <!-- DEMOGRAPHICS -->
+  <div class="panel" id="panel-demo">
+    <div class="section-header">
+      <div class="section-header-accent"></div>
+      <div>
+        <h2>Demographics &amp; Household Profile</h2>
+        <p>Who are we interviewing? Respondent demographics, household composition, housing, income and assets of consenting households — the baseline profile against which exposure, beliefs and willingness to pay are analysed.</p>
+      </div>
+    </div>
+    <div class="kpi-grid" id="dm-kpis"></div>
+    <div class="chart-grid cols-3">
+      <div class="chart-card"><h3>Gender of Respondent</h3><div class="chart-desc">Consenting respondents</div><div class="chart-wrap"><canvas id="chartGender"></canvas></div></div>
+      <div class="chart-card"><h3>Age Distribution</h3><div class="chart-desc">Respondent age bands</div><div class="chart-wrap"><canvas id="chartAge"></canvas></div></div>
+      <div class="chart-card"><h3>Marital Status</h3><div class="chart-desc">Consenting respondents</div><div class="chart-wrap"><canvas id="chartMarital"></canvas></div></div>
+    </div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><h3>Education</h3><div class="chart-desc">Highest level completed</div><div class="chart-wrap tall"><canvas id="chartEdu"></canvas></div></div>
+      <div class="chart-card"><h3>Occupation</h3><div class="chart-desc">Main occupation of respondent</div><div class="chart-wrap tall"><canvas id="chartOcc"></canvas></div></div>
+    </div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><h3>Monthly Household Income (PKR)</h3><div class="chart-desc">Self-reported income range</div><div class="chart-wrap"><canvas id="chartIncome"></canvas></div></div>
+      <div class="chart-card"><h3>Main Income Source</h3><div class="chart-desc">Household's primary earning source</div><div class="chart-wrap"><canvas id="chartIncSrc"></canvas></div></div>
+    </div>
+    <div class="chart-grid cols-3">
+      <div class="chart-card"><h3>House Ownership</h3><div class="chart-desc">Owned, family-owned or rented</div><div class="chart-wrap"><canvas id="chartOwn"></canvas></div></div>
+      <div class="chart-card"><h3>Cooking Fuel</h3><div class="chart-desc">Primary fuel used by the household</div><div class="chart-wrap"><canvas id="chartFuel"></canvas></div></div>
+      <div class="chart-card"><h3>Household Assets</h3><div class="chart-desc">% of households owning each asset</div><div class="chart-wrap tall"><canvas id="chartAssets"></canvas></div></div>
+    </div>
+    <p class="footnote">Base: consenting respondents. Asset ownership is multiple-response. Codes 98 = Refused, 99 = Don't know excluded from chart bases where applicable.</p>
+  </div>
+
+  <!-- HEALTH -->
+  <div class="panel" id="panel-health">
+    <div class="section-header">
+      <div class="section-header-accent"></div>
+      <div>
+        <h2>Health &amp; Smog Exposure</h2>
+        <p>The human cost of smog: respiratory illness in the household over the last 12 months, the symptoms experienced, allergies on high-pollution days, treatment-seeking, out-of-pocket spending, and who households believe suffers most.</p>
+      </div>
+    </div>
+    <div class="kpi-grid" id="he-kpis"></div>
+    <div class="chart-grid cols-3">
+      <div class="chart-card"><h3>Respiratory Issues (Last 12 Months)</h3><div class="chart-desc">Any household member affected</div><div class="chart-wrap"><canvas id="chartResp"></canvas></div></div>
+      <div class="chart-card"><h3>Sought Medical Treatment</h3><div class="chart-desc">Visited hospital, clinic or doctor</div><div class="chart-wrap"><canvas id="chartSought"></canvas></div></div>
+      <div class="chart-card"><h3>Spent Money on Treatment</h3><div class="chart-desc">Medicine, masks or preventive items</div><div class="chart-wrap"><canvas id="chartSpent"></canvas></div></div>
+    </div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><h3>Symptoms Experienced Most Often</h3><div class="chart-desc">Among households reporting issues (multiple answers)</div><div class="chart-wrap tall"><canvas id="chartSymp"></canvas></div></div>
+      <div class="chart-card"><h3>Allergies on Smog Days</h3><div class="chart-desc">Type of allergy experienced (multiple answers)</div><div class="chart-wrap"><canvas id="chartAllergy"></canvas></div></div>
+    </div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><h3>Who Is Most Affected?</h3><div class="chart-desc">Household member believed most affected by poor air</div><div class="chart-wrap"><canvas id="chartAffected"></canvas></div></div>
+      <div class="chart-card"><h3>Protective Steps Taken</h3><div class="chart-desc">Actions households already take (enumerator-coded, multiple answers)</div><div class="chart-wrap tall"><canvas id="chartPrevent"></canvas></div></div>
+    </div>
+    <p class="footnote" id="he-footnote"></p>
+  </div>
+
+  <!-- AWARENESS -->
+  <div class="panel" id="panel-aware">
+    <div class="section-header">
+      <div class="section-header-accent"></div>
+      <div>
+        <h2>Air Quality Awareness &amp; Attitudes</h2>
+        <p>What do households know and believe about Lahore's air? Perceived trends, attention paid to air quality, beliefs about causes, AQI knowledge, and the weather patterns people associate with smog — all measured before any information treatment.</p>
+      </div>
+    </div>
+    <div class="kpi-grid" id="aw-kpis"></div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><h3>Air Quality vs 5 Years Ago</h3><div class="chart-desc">Perceived change in Lahore's air quality</div><div class="chart-wrap"><canvas id="chartTrend"></canvas></div></div>
+      <div class="chart-card"><h3>"I Pay Attention to Air Quality"</h3><div class="chart-desc">Agreement with the statement</div><div class="chart-wrap"><canvas id="chartAttention"></canvas></div></div>
+    </div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><h3>Perceived Causes of Poor Air</h3><div class="chart-desc">% naming each cause (prompted, multiple answers)</div><div class="chart-wrap tall"><canvas id="chartCauses"></canvas></div></div>
+      <div class="chart-card"><h3>Single Most Important Cause</h3><div class="chart-desc">Which cause matters most, per respondent</div><div class="chart-wrap tall"><canvas id="chartTopCause"></canvas></div></div>
+    </div>
+    <div class="chart-grid cols-3">
+      <div class="chart-card"><h3>Heard of the AQI?</h3><div class="chart-desc">Awareness of the Air Quality Index</div><div class="chart-wrap"><canvas id="chartAqiHeard"></canvas></div></div>
+      <div class="chart-card"><h3>Which AQI Level Is Hazardous?</h3><div class="chart-desc">Knowledge check among those aware</div><div class="chart-wrap"><canvas id="chartAqiKnow"></canvas></div></div>
+      <div class="chart-card"><h3>Confidence in Own Beliefs</h3><div class="chart-desc">Self-rated confidence about pollution sources</div><div class="chart-wrap"><canvas id="chartConf"></canvas></div></div>
+    </div>
+    <div class="chart-grid cols-3">
+      <div class="chart-card"><h3>Weather Patterns Linked to Smog</h3><div class="chart-desc">Multiple answers allowed</div><div class="chart-wrap"><canvas id="chartWeather"></canvas></div></div>
+      <div class="chart-card"><h3>Worst Season for Pollution</h3><div class="chart-desc">Perceived worst season</div><div class="chart-wrap"><canvas id="chartSeason"></canvas></div></div>
+      <div class="chart-card"><h3>Does Weather Cause Smog?</h3><div class="chart-desc">Belief that weather changes cause smog</div><div class="chart-wrap"><canvas id="chartWeatherSmog"></canvas></div></div>
+    </div>
+    <p class="footnote">All items asked before the belief-elicitation and information-treatment modules. Prompted causes shown after an open-ended question.</p>
+  </div>
+
+  <!-- INFO & TRUST -->
+  <div class="panel" id="panel-info">
+    <div class="section-header">
+      <div class="section-header-accent"></div>
+      <div>
+        <h2>Information Sources &amp; Trust</h2>
+        <p>Where do households get air-quality information, how often do they check it, and whom do they trust? Plus perceptions of government seriousness and awareness of official smog alerts.</p>
+      </div>
+    </div>
+    <div class="kpi-grid" id="in-kpis"></div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><h3>Sources of AQ Information</h3><div class="chart-desc">% learning about air quality from each source (multiple answers)</div><div class="chart-wrap tall"><canvas id="chartSources"></canvas></div></div>
+      <div class="chart-card"><h3>How Often People Check AQ Info</h3><div class="chart-desc">Frequency of looking for air-quality information</div><div class="chart-wrap tall"><canvas id="chartFreq"></canvas></div></div>
+    </div>
+    <div class="chart-grid cols-3">
+      <div class="chart-card"><h3>Primary News Channel</h3><div class="chart-desc">TV channel watched most</div><div class="chart-wrap"><canvas id="chartChannel"></canvas></div></div>
+      <div class="chart-card"><h3>Government Seriousness</h3><div class="chart-desc">How serious is government about air pollution?</div><div class="chart-wrap"><canvas id="chartSerious"></canvas></div></div>
+      <div class="chart-card"><h3>Trust in Official AQ Information</h3><div class="chart-desc">"I trust official air-quality information"</div><div class="chart-wrap"><canvas id="chartTrustInfo"></canvas></div></div>
+    </div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><h3>Most Trusted Source</h3><div class="chart-desc">Whose air-quality information is trusted most</div><div class="chart-wrap"><canvas id="chartTrustSrc"></canvas></div></div>
+      <div class="chart-card"><h3>Awareness of Official Smog Alerts</h3><div class="chart-desc">Aware of alerts / advisory programs, and whether ever received</div><div class="chart-wrap"><canvas id="chartAlertAware"></canvas></div></div>
+    </div>
+    <p class="footnote">Base: consenting respondents. Multiple-response items show number of respondents selecting each option.</p>
+  </div>
+
+  <!-- APP (separate tab) -->
+  <div class="panel" id="panel-app">
+    <div class="section-header">
+      <div class="section-header-accent"></div>
+      <div>
+        <h2>Smog Alert App — Take-up &amp; Information Preferences</h2>
+        <p>The app module: enumerators demonstrate the Smog Alert mobile app and invite the respondent to install it. This panel tracks real installation take-up at the doorstep, first impressions of usefulness and usability, preferred alert channels and frequency, and what kind of air-quality reports households actually want.</p>
+      </div>
+    </div>
+    <div class="kpi-grid" id="ap-kpis"></div>
+    <div class="insight-box teal" id="ap-insight"></div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><h3>App Installation at the Doorstep</h3><div class="chart-desc">Did the respondent download the app during the visit?</div><div class="chart-wrap tall"><canvas id="chartAppDown"></canvas></div></div>
+      <div class="chart-card"><h3>Perceived Usefulness</h3><div class="chart-desc">How useful respondents find the app after the demo</div><div class="chart-wrap tall"><canvas id="chartAppUseful"></canvas></div></div>
+    </div>
+    <div class="chart-grid cols-3">
+      <div class="chart-card"><h3>Would Use in Future</h3><div class="chart-desc">Intention to use the app going forward</div><div class="chart-wrap"><canvas id="chartAppUse"></canvas></div></div>
+      <div class="chart-card"><h3>Ease of Use</h3><div class="chart-desc">How easy the app was to understand and use</div><div class="chart-wrap"><canvas id="chartAppEasy"></canvas></div></div>
+      <div class="chart-card"><h3>Seen Similar Apps Before?</h3><div class="chart-desc">Prior exposure to AQ apps</div><div class="chart-wrap"><canvas id="chartAppSimilar"></canvas></div></div>
+    </div>
+    <div class="chart-grid cols-3">
+      <div class="chart-card"><h3>Preferred Alert Frequency</h3><div class="chart-desc">How often respondents want alerts</div><div class="chart-wrap"><canvas id="chartAlertFreq"></canvas></div></div>
+      <div class="chart-card"><h3>Preferred Alert Channel</h3><div class="chart-desc">SMS, WhatsApp, app notification or TV/radio</div><div class="chart-wrap"><canvas id="chartAlertType"></canvas></div></div>
+      <div class="chart-card"><h3>Interest in Forecasts</h3><div class="chart-desc">Next-day air-quality predictions</div><div class="chart-wrap"><canvas id="chartForecast"></canvas></div></div>
+    </div>
+    <div class="land-prog-head">📋 Information-Report Preferences</div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><h3>Preferred Coverage Area</h3><div class="chart-desc">Would a report cover all Lahore, the tehsil, or the mohalla? (multiple answers)</div><div class="chart-wrap"><canvas id="chartPrefLoc"></canvas></div></div>
+      <div class="chart-card"><h3>Preferred Report Frequency</h3><div class="chart-desc">Daily, weekly or monthly</div><div class="chart-wrap"><canvas id="chartPrefFreq"></canvas></div></div>
+    </div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><h3>Preferred Level of Detail</h3><div class="chart-desc">Overall AQI vs breakdown by pollution source</div><div class="chart-wrap"><canvas id="chartPrefDetail"></canvas></div></div>
+      <div class="chart-card"><h3>Interest in Source-Apportionment Report</h3><div class="chart-desc">Monthly report showing which sources contribute most</div><div class="chart-wrap"><canvas id="chartPrefApport"></canvas></div></div>
+    </div>
+    <p class="footnote">App module asked of all consenting respondents (all report smartphone access — a screening criterion). "Installed" = app downloaded on the respondent's phone during the visit; QR-code takers may install later.</p>
+  </div>
+
+  <!-- AVOIDANCE -->
+  <div class="panel" id="panel-avoid">
+    <div class="section-header">
+      <div class="section-header-accent"></div>
+      <div>
+        <h2>Avoidance Behaviour on Smog Days</h2>
+        <p>What do households already do to protect themselves? Behaviour change during the last smog season, specific actions taken, mask use, ventilation habits, and the gap in time spent outdoors between clean and polluted days.</p>
+      </div>
+    </div>
+    <div class="kpi-grid" id="av-kpis"></div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><h3>Changed Behaviour on High-Pollution Days</h3><div class="chart-desc">During the last smog season</div><div class="chart-wrap"><canvas id="chartChanged"></canvas></div></div>
+      <div class="chart-card"><h3>Hours Outdoors: Low vs High Pollution Days</h3><div class="chart-desc">Average self-reported hours outside</div><div class="chart-wrap"><canvas id="chartHours"></canvas></div></div>
+    </div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><h3>Actions Taken on Smog Days</h3><div class="chart-desc">Enumerator-coded, multiple answers</div><div class="chart-wrap tall"><canvas id="chartActions"></canvas></div></div>
+      <div class="chart-card"><h3>Mask Type Usually Worn</h3><div class="chart-desc">Among all consenting respondents</div><div class="chart-wrap"><canvas id="chartMask"></canvas></div></div>
+    </div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card full"><h3>Windows &amp; Doors Shut During Smog Season</h3><div class="chart-desc">Always · Sometimes · No</div><div class="chart-wrap"><canvas id="chartWindows"></canvas></div></div>
+    </div>
+    <p class="footnote">Outdoor-hours comparison uses typical self-reported hours on low- vs high-pollution days.</p>
+  </div>
+
+  <!-- BELIEFS & EXPERIMENT -->
+  <div class="panel" id="panel-beliefs">
+    <div class="section-header">
+      <div class="section-header-accent"></div>
+      <div>
+        <h2>Beliefs &amp; the Information Experiment</h2>
+        <p>The heart of the study. Respondents allocate 100 tokens across pollution sources before and after a randomized information script: <strong>T1</strong> hears a Lahore-specific report (vehicles ≈ 83/100), <strong>T2</strong> hears a Punjab-wide report (vehicles ≈ 43/100), and <strong>Control</strong> hears nothing. Downstream, everyone plays a real-stakes donation game and can sign an enforcement letter to the Urban Unit.</p>
+      </div>
+    </div>
+    <div class="insight-box navy" id="be-arms-box"></div>
+    <div class="kpi-grid" id="be-kpis"></div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><h3>Beliefs: Pre vs Post Treatment</h3><div class="chart-desc">Mean tokens (out of 100) allocated to each source, all consenting respondents</div><div class="chart-wrap"><canvas id="chartPrePost"></canvas></div></div>
+      <div class="chart-card"><h3>Vehicle-Share Belief Shift by Arm</h3><div class="chart-desc">Mean tokens on vehicle emissions before vs after the script — first read on treatment effects</div><div class="chart-wrap"><canvas id="chartArmShift"></canvas></div></div>
+    </div>
+    <div class="chart-grid cols-3">
+      <div class="chart-card"><h3>Comprehension of the Script</h3><div class="chart-desc">Enumerator-coded understanding (T1 &amp; T2 only)</div><div class="chart-wrap"><canvas id="chartComp"></canvas></div></div>
+      <div class="chart-card"><h3>Donation Amounts (PKR 0–500)</h3><div class="chart-desc">Real-stakes donation to air purifiers for schools</div><div class="chart-wrap"><canvas id="chartDon"></canvas></div></div>
+      <div class="chart-card"><h3>Mean Donation by Arm</h3><div class="chart-desc">Average PKR donated out of the 500 endowment</div><div class="chart-wrap"><canvas id="chartDonArm"></canvas></div></div>
+    </div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><h3>Urban Unit Enforcement Letter</h3><div class="chart-desc">Share willing to sign the enforcement letter</div><div class="chart-wrap"><canvas id="chartLetter"></canvas></div></div>
+      <div class="chart-card"><h3>Letter Enforcement Priorities</h3><div class="chart-desc">Priority filled in by signatories (coded, multiple answers)</div><div class="chart-wrap"><canvas id="chartLetterPri"></canvas></div></div>
+    </div>
+    <p class="footnote" id="be-footnote"></p>
+  </div>
+
+  <!-- ENFORCEMENT -->
+  <div class="panel" id="panel-enforce">
+    <div class="section-header">
+      <div class="section-header-accent"></div>
+      <div>
+        <h2>Enforcement Awareness &amp; Governance</h2>
+        <p>What government action have households noticed, how effective do they think it is, and where do they want enforcement focused? Includes post-treatment stated enforcement preferences and beliefs about responsibility for Lahore's air.</p>
+      </div>
+    </div>
+    <div class="kpi-grid" id="en-kpis"></div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><h3>Government Actions Heard Of</h3><div class="chart-desc">Enumerator-coded, multiple answers</div><div class="chart-wrap tall"><canvas id="chartGovtAct"></canvas></div></div>
+      <div class="chart-card"><h3>Perceived Effectiveness of Government Efforts</h3><div class="chart-desc">Overall rating</div><div class="chart-wrap tall"><canvas id="chartEffect"></canvas></div></div>
+    </div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><h3>Top Enforcement Priority</h3><div class="chart-desc">Which source should government prioritize most (post-treatment)</div><div class="chart-wrap"><canvas id="chartTopEnf"></canvas></div></div>
+      <div class="chart-card"><h3>Most Responsible for Reducing Pollution</h3><div class="chart-desc">Ranked first by respondents</div><div class="chart-wrap"><canvas id="chartRespWho"></canvas></div></div>
+    </div>
+    <div class="chart-grid cols-3">
+      <div class="chart-card"><h3>Enforcement Seen on the Ground</h3><div class="chart-desc">Vehicle emissions checking observed</div><div class="chart-wrap"><canvas id="chartVehEnf"></canvas></div></div>
+      <div class="chart-card"><h3>Are Lahoris Responsible?</h3><div class="chart-desc">Residents primarily responsible for the city's pollution?</div><div class="chart-wrap"><canvas id="chartLahoreResp"></canvas></div></div>
+      <div class="chart-card"><h3>Would Authorities Respond to Reports?</h3><div class="chart-desc">Belief that reporting pollution leads to action</div><div class="chart-wrap"><canvas id="chartRespBelief"></canvas></div></div>
+    </div>
+    <div class="callout-row" id="en-callouts"></div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card full"><h3>"Air Pollution Is Unavoidable in Large Cities"</h3><div class="chart-desc">Agreement with the fatalism statement</div><div class="chart-wrap"><canvas id="chartUnavoid"></canvas></div></div>
+    </div>
+    <p class="footnote">Stated enforcement preferences are collected after the information treatment; interpret arm-pooled distributions accordingly.</p>
+  </div>
+
+  <!-- WTP & FAIRNESS -->
+  <div class="panel" id="panel-wtp">
+    <div class="section-header">
+      <div class="section-header-accent"></div>
+      <div>
+        <h2>Willingness to Pay &amp; Fairness</h2>
+        <p>Would households contribute to cleaner air? A 2×2 scenario-based contingent-valuation design crosses <strong>source</strong> (vehicles vs crop burning) with <strong>policy type</strong> (monitoring vs enforcement), with the monthly bid randomized at PKR 100 / 200 / 500 per household — plus fairness views and the green-sticker vehicle-compliance module.</p>
+      </div>
+    </div>
+    <div class="kpi-grid" id="wt-kpis"></div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card full">
+        <h3>Demand Curve — Acceptance by Randomized Monthly Bid</h3>
+        <div class="chart-desc">% of vignette offers accepted at the initial bid, by randomly assigned price (pooled across all four programs)</div>
+        <div class="chart-wrap"><canvas id="chartDemand"></canvas></div>
+      </div>
+    </div>
+    <div class="chart-grid cols-2">
+      <div class="chart-card"><h3>Acceptance by Program Vignette</h3><div class="chart-desc">% saying yes at the initial bid, per program</div><div class="chart-wrap tall"><canvas id="chartVig"></canvas></div></div>
+      <div class="chart-card"><h3>Why Households Would Not Contribute</h3><div class="chart-desc">Protest / refusal reasons among non-contributors</div><div class="chart-wrap tall"><canvas id="chartProtest"></canvas></div></div>
+    </div>
+    <div class="land-prog-head">⚖️ Fairness Views</div>
+    <div class="chart-grid cols-3">
+      <div class="chart-card"><h3>Who Should Bear the Cost?</h3><div class="chart-desc">Polluters vs everyone vs government</div><div class="chart-wrap"><canvas id="chartFairDist"></canvas></div></div>
+      <div class="chart-card"><h3>Fair to Pay for Outside Pollution?</h3><div class="chart-desc">Paying for pollution originating outside Lahore</div><div class="chart-wrap"><canvas id="chartFairProc"></canvas></div></div>
+      <div class="chart-card"><h3>Should Bigger Polluters Pay More?</h3><div class="chart-desc">Equity of pollution charges</div><div class="chart-wrap"><canvas id="chartFairEq"></canvas></div></div>
+    </div>
+    <div class="land-prog-head">🚗 Green Sticker / Vehicle Compliance</div>
+    <div class="chart-grid cols-3">
+      <div class="chart-card"><h3>Household Owns a Vehicle</h3><div class="chart-desc">Car, motorcycle or rickshaw</div><div class="chart-wrap"><canvas id="chartVehOwn"></canvas></div></div>
+      <div class="chart-card"><h3>Aware of Green-Sticker Program</h3><div class="chart-desc">Vehicle emissions testing awareness</div><div class="chart-wrap"><canvas id="chartGsAware"></canvas></div></div>
+      <div class="chart-card"><h3>Willing to Get the Green Sticker</h3><div class="chart-desc">Vehicle owners: smoke check + sticker purchase</div><div class="chart-wrap"><canvas id="chartGsComply"></canvas></div></div>
+    </div>
+    <p class="footnote" id="wt-footnote"></p>
+  </div>
+
+  <!-- UC TRACKER -->
+  <div class="panel" id="panel-uc">
+    <div class="section-header">
+      <div class="section-header-accent"></div>
+      <div>
+        <h2>Union Council Completion Tracker</h2>
+        <p>Live completion status for every union council and ward in the 300-household sampling frame — completed interviews against sampled households, with search, filters, sorting and CSV export.</p>
+      </div>
+    </div>
+    <div class="kpi-grid" id="uc-kpis"></div>
+    <div class="land-prog-head">🏘️ Progress by Union Council</div>
+    <div class="land-prog" id="uc-cards"></div>
+    <p class="footnote" style="margin-top:8px;margin-bottom:22px;">Each card is one union council. Target = sampled households in the frame; completed = consented interviews so far.</p>
+    <div class="mz-toolbar">
+      <input type="text" id="uc-search" class="mz-search" placeholder="🔍  Search union council or ward…" oninput="renderUcTable()">
+      <select id="uc-status" class="mz-filter" onchange="renderUcTable()">
+        <option value="all" selected>All wards</option>
+        <option value="started">Started only (active wards)</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Completed">Completed</option>
+        <option value="Not Started">Not Started</option>
+      </select>
+      <select id="uc-ucsel" class="mz-filter" onchange="renderUcTable()"></select>
+      <button class="mz-export" onclick="exportUcCSV()">⬇ Export CSV</button>
+      <span class="mz-count" id="uc-count"></span>
+    </div>
+    <div class="mz-table-wrap">
+      <table class="mz-table" id="uc-table">
+        <thead>
+          <tr>
+            <th data-sort="uc">Union Council <span class="arrow"></span></th>
+            <th data-sort="ward">Ward <span class="arrow"></span></th>
+            <th class="num" data-sort="attempts">Attempts <span class="arrow"></span></th>
+            <th class="num" data-sort="done">Completed <span class="arrow"></span></th>
+            <th class="num" data-sort="target">Sampled Target <span class="arrow"></span></th>
+            <th data-sort="pct">Completion <span class="arrow">▼</span></th>
+            <th data-sort="status">Status <span class="arrow"></span></th>
+          </tr>
+        </thead>
+        <tbody id="uc-body"></tbody>
+      </table>
+    </div>
+    <p class="footnote">Each row is a union council × ward in the sampling frame (10 households per ward). Wards visited in the field but not in the frame show target 0. Completion % = consented interviews ÷ sampled target.</p>
+  </div>
+
+</div><!-- /main -->
+
+<div class="page-footer">
+  <strong>Smog Alert Baseline Survey Dashboard</strong> &nbsp;·&nbsp;
+  Research Solutions (M&amp;A Research Solutions LLC) &nbsp;·&nbsp;
+  <strong>www.rs.org.pk</strong> &nbsp;·&nbsp;
+  Shalamar Tehsil, Lahore District, Pakistan &nbsp;·&nbsp; <span id="footer-updated">—</span>
+</div>
+</div><!-- /site-content -->
+
+<script>
+// ============================================================
+//  DATA  (injected by build_dashboard.py)
+// ============================================================
+const DASHBOARD_DATA = {"meta":{"updated":"12 July 2026","first_day":"09 Jul 2026","last_day":"12 Jul 2026","days":3,"attempts":52,"consented":30,"completed":30,"consent_rate":58,"refused":22,"avg_dur":80.5,"frame_total":300,"frame_ucs":13,"ucs_covered":3,"enums":6,"arms":{"t1":11,"t2":9,"control":10},"tehsil":"Shalamar","smartphone_pct":100},"ov":{"daily":[{"d":"Jul 09","attempts":15,"completed":10},{"d":"Jul 11","attempts":15,"completed":10},{"d":"Jul 12","attempts":22,"completed":10}],"disposition":[{"label":"Completed","value":30},{"label":"Refused because of lack of trust","value":17},{"label":"Refused because of lack of interest","value":4},{"label":"Refused because of time","value":1}],"by_uc":[{"label":"Rasheed Pura","attempts":22,"completed":10},{"label":"Daroghawala","attempts":15,"completed":10},{"label":"Nabi Pura","attempts":15,"completed":10}],"enum_table":[{"name":"Tanveer","attempts":16,"completed":8,"consent_pct":50,"avg_dur":79.3,"days":3},{"name":"Ahmad Bhatti","attempts":12,"completed":7,"consent_pct":58,"avg_dur":79.9,"days":3},{"name":"Anum Inayat","attempts":9,"completed":5,"consent_pct":56,"avg_dur":76.4,"days":3},{"name":"Ali Shahab","attempts":6,"completed":4,"consent_pct":67,"avg_dur":82.0,"days":2},{"name":"Asma Shabbir","attempts":5,"completed":3,"consent_pct":60,"avg_dur":73.0,"days":2},{"name":"Waqas","attempts":4,"completed":3,"consent_pct":75,"avg_dur":84.1,"days":2}],"arms_donut":[{"label":"T1 — Lahore report","value":11},{"label":"T2 — Punjab report","value":9},{"label":"Control","value":10}],"duration_hist":[{"label":"< 45 min","value":0},{"label":"45–60 min","value":0},{"label":"60–75 min","value":10},{"label":"75–90 min","value":19},{"label":"90+ min","value":1}]},"demo":{"gender":[{"label":"Male","value":17},{"label":"Female","value":13}],"age_hist":[{"label":"18–25","value":3},{"label":"26–35","value":12},{"label":"36–45","value":10},{"label":"46–55","value":4},{"label":"56+","value":1}],"education":[{"label":"No formal education","value":1},{"label":"Middle","value":1},{"label":"Matric","value":11},{"label":"Intermediate","value":10},{"label":"Bachelor","value":6},{"label":"Master or above","value":1}],"occupation":[{"label":"Private job","value":13},{"label":"Homemaker","value":12},{"label":"Student","value":2},{"label":"Government job","value":1},{"label":"Business","value":1},{"label":"Retired","value":1}],"marital":[{"label":"Single","value":2},{"label":"Married","value":28}],"income":[{"label":"20,000 – 40,000","value":2},{"label":"40,001 – 60,000","value":19},{"label":"60,001 – 80,000","value":8},{"label":"80,001 – 100,000","value":1}],"income_source":[{"label":"Private salaried job","value":23},{"label":"Own business / shop","value":5},{"label":"Government job","value":2}],"ownership":[{"label":"Own","value":28},{"label":"Rented","value":2}],"fuel":[{"label":"Gas (Sui Gas)","value":30}],"assets":[{"label":"Refrigerator","value":30},{"label":"Washing machine","value":30},{"label":"Motorcycle","value":29},{"label":"Air cooler","value":21},{"label":"AC","value":17},{"label":"UPS","value":13}],"avg_age":36.5,"avg_hh":5.6,"avg_rooms":2.6,"avg_years_nb":22.0,"elderly_pct":20,"children_pct":77,"avg_employed":1.2,"outdoors_yest":6.5,"outdoors_typ":6.5},"health":{"resp_issues":[{"label":"Yes","value":6},{"label":"No","value":24}],"resp_pct":20,"symptoms":[{"label":"Eye irritation","value":3},{"label":"Throat irritation","value":2},{"label":"Cough","value":1}],"allergy":[{"label":"Eye allergies","value":6},{"label":"Nose/sinus allergies","value":5}],"sought":[{"label":"Yes","value":7},{"label":"No","value":23}],"spent":[{"label":"Yes","value":25},{"label":"No","value":5}],"spend_mean":1472,"spend_med":1200,"spend_n":25,"affected":[{"label":"Children","value":16},{"label":"No one","value":8},{"label":"Elderly","value":3},{"label":"Outdoor workers","value":2},{"label":"Women","value":1}],"prevent":[{"label":"Used masks","value":27},{"label":"Stayed indoors","value":6}]},"aware":{"trend":[{"label":"About the same","value":4},{"label":"Somewhat worse","value":6},{"label":"Much worse","value":20}],"worse_pct":87,"attention":[{"label":"Strongly agree","value":1},{"label":"Somewhat agree","value":5},{"label":"Neither agree nor disagree","value":12},{"label":"Somewhat disagree","value":12}],"causes":[{"label":"Vehicle emissions","value":20},{"label":"Factory/industrial pollution","value":15},{"label":"Crop residue burning","value":4},{"label":"Weather/seasonal changes","value":4},{"label":"Household/waste burning","value":1},{"label":"Dust from unpaved roads","value":1}],"top_cause":[{"label":"Vehicle emissions","value":17},{"label":"Factory/industrial pollution","value":10},{"label":"Crop residue burning","value":1},{"label":"Weather/seasonal changes","value":1},{"label":"Dust from unpaved roads","value":1}],"info_src_belief":[{"label":"News/media","value":19},{"label":"Social media","value":11}],"confidence":[{"label":"Slightly confident","value":2},{"label":"Moderately confident","value":7},{"label":"Very confident","value":15},{"label":"Completely confident","value":6}],"heard_aqi":[{"label":"Yes","value":15},{"label":"No","value":15}],"aqi_pct":50,"aqi_know":[{"label":"More than 150","value":4},{"label":"More than 200","value":6},{"label":"More than 300","value":5}],"weather":[{"label":"Dry/dusty wind","value":21},{"label":"No rain for many days","value":17},{"label":"Smell in the air","value":5},{"label":"Overcast/cloudy skies","value":3}],"season":[{"label":"Winter","value":30}],"weather_smog":[{"label":"Yes","value":29},{"label":"Don't know","value":1}]},"info":{"sources":[{"label":"TV news","value":21},{"label":"Social media (Facebook, WhatsApp, YouTube)","value":15},{"label":"Friends & family","value":7},{"label":"Government announcements","value":5},{"label":"Newspapers","value":2},{"label":"Schools/educational institutions","value":1}],"freq":[{"label":"Rarely","value":13},{"label":"Never","value":17}],"channel":[{"label":"Geo","value":15},{"label":"Don't watch TV news","value":8},{"label":"ARY","value":3},{"label":"Express","value":2},{"label":"Dunya","value":1},{"label":"Samaa","value":1}],"seriousness":[{"label":"Very serious","value":2},{"label":"Somewhat serious","value":23},{"label":"Not serious","value":5}],"trust":[{"label":"Strongly agree","value":2},{"label":"Somewhat agree","value":5},{"label":"Neither agree nor disagree","value":10},{"label":"Somewhat disagree","value":12},{"label":"Strongly disagree","value":1}],"trusted_src":[{"label":"Social media","value":15},{"label":"Media","value":12},{"label":"Government","value":2},{"label":"Scientists/researchers","value":1}],"alert_aware":[{"label":"Yes, aware and received alerts","value":6},{"label":"Yes, aware but never received","value":4},{"label":"No, not aware","value":20}],"alert_pct":33},"app":{"downloaded":[{"label":"Took QR code — will install later","value":11},{"label":"Yes, downloaded the app","value":9},{"label":"No — was not sure / did not trust it","value":5},{"label":"No — was not interested","value":3},{"label":"Other","value":2}],"installed_n":9,"qr_n":11,"seen_similar":[{"label":"No","value":30}],"usefulness":[{"label":"Very useful","value":7},{"label":"Somewhat useful","value":4},{"label":"Neither useful nor useless","value":9},{"label":"Somewhat useless","value":7},{"label":"Not at all useful","value":3}],"useful_pct":37,"would_use":[{"label":"Yes","value":10},{"label":"No","value":10},{"label":"Maybe","value":10}],"would_use_pct":33,"freq_pref":[{"label":"Daily","value":1},{"label":"Only on bad air quality days","value":4},{"label":"Weekly summary","value":4},{"label":"Don't want alerts","value":21}],"forecast":[{"label":"Very interested","value":1},{"label":"Somewhat interested","value":10},{"label":"Not interested","value":19}],"type_pref":[{"label":"TV/radio","value":12},{"label":"SMS","value":10},{"label":"App notification","value":5},{"label":"WhatsApp","value":3}],"usability":[{"label":"Very easy","value":3},{"label":"Somewhat easy","value":4},{"label":"Neither easy nor difficult","value":11},{"label":"Somewhat difficult","value":10},{"label":"Very difficult","value":2}],"easy_pct":23,"pref_loc":[{"label":"All of Lahore","value":12},{"label":"Your district/tehsil","value":2},{"label":"Your specific neighborhood/mohalla","value":16}],"pref_freq":[{"label":"Every day","value":1},{"label":"Every week","value":6},{"label":"Every month","value":23}],"pref_detail":[{"label":"Just the overall AQI number","value":8},{"label":"AQI plus breakdown by source","value":3},{"label":"Not interested in regular reports","value":19}],"pref_apport":[{"label":"Very interested","value":2},{"label":"Somewhat interested","value":10},{"label":"Not interested","value":18}]},"avoid":{"changed":[{"label":"Yes","value":24},{"label":"No","value":5},{"label":"Sometimes","value":1}],"changed_pct":83,"actions":[{"label":"Wear mask","value":24},{"label":"Stay indoors","value":4}],"mask":[{"label":"Surgical","value":24}],"windows":[{"label":"Always","value":4},{"label":"Sometimes","value":14},{"label":"No","value":12}],"hours_low":6.3,"hours_high":5.6},"beliefs":{"src_labels":["Vehicles","Industry","Crop burning","Other"],"pre":[46.3,36.7,11.2,5.8],"post":[52.3,32.4,8.9,6.3],"by_arm_shift":[{"label":"T1 (Lahore: veh 83)","pre":45.5,"post":62.3},{"label":"T2 (Punjab: veh 43)","pre":51.1,"post":50.0},{"label":"Control","pre":43.0,"post":43.5}],"comp_explain":[{"label":"Correct understanding","value":10},{"label":"Partial understanding","value":10}],"recall_exact":6,"recall_n":20,"don_hist":[{"label":"PKR 0","value":10},{"label":"1–100","value":3},{"label":"101–200","value":2},{"label":"201–300","value":6},{"label":"301–400","value":1},{"label":"401–500","value":8}],"don_mean":227,"don_pos_pct":67,"don_by_arm":[{"label":"T1","value":200},{"label":"T2","value":244},{"label":"Control","value":240}],"letter_signed":[{"label":"Yes","value":11},{"label":"No","value":19}],"letter_pct":37,"letter_priority":[{"label":"Vehicle emissions","value":9},{"label":"Other sources","value":2},{"label":"Factories and industry","value":1}]},"enforce":{"top_choice":[{"label":"Vehicle emissions","value":20},{"label":"Factories and industry","value":9},{"label":"Other sources","value":1}],"rank1":[{"label":"Vehicle emissions","value":20},{"label":"Factories and industry","value":9},{"label":"Other sources","value":1}],"lahore_resp":[{"label":"Yes","value":30}],"govt_actions":[{"label":"School closures","value":24},{"label":"Smog alerts","value":5},{"label":"Plantation drives","value":1}],"effectiveness":[{"label":"Very effective","value":3},{"label":"Somewhat effective","value":18},{"label":"Not effective","value":9}],"closures":[{"label":"Yes","value":30}],"veh_enf":[{"label":"Frequently","value":8},{"label":"Sometimes","value":12},{"label":"Never","value":10}],"factory":[{"label":"Yes","value":24},{"label":"No","value":6}],"burning":[{"label":"Yes","value":29},{"label":"No","value":1}],"knows_report":[{"label":"No","value":30}],"report_pct":0,"resp_belief":[{"label":"Yes definitely","value":1},{"label":"Maybe","value":19},{"label":"Probably not","value":10}],"resp_rank1":[{"label":"Government","value":30}],"unavoidable":[{"label":"Somewhat disagree","value":15},{"label":"Strongly disagree","value":15}]},"wtp":{"vignettes":[{"label":"Crop Burning × Enforcement","value":13,"n":30},{"label":"Crop Burning × Monitoring","value":7,"n":30},{"label":"Vehicles × Enforcement","value":17,"n":30},{"label":"Vehicles × Monitoring","value":13,"n":30}],"curve":[{"price":100,"pct":35,"n":10},{"price":200,"pct":3,"n":9},{"price":500,"pct":0,"n":11}],"any_yes_pct":27,"protest":[{"label":"Government should pay, not citizens","value":15},{"label":"Don't trust government to use it well","value":3},{"label":"Don't think it would work","value":1}],"protest_n":19,"fair_dist":[{"label":"Those who cause it","value":23},{"label":"Everyone equally","value":1},{"label":"Government only","value":6}],"fair_proc":[{"label":"No","value":30}],"fair_eq":[{"label":"Polluters pay more","value":24},{"label":"Everyone pays same","value":1},{"label":"Don't know","value":5}],"veh_owner":[{"label":"Yes","value":30}],"veh_owner_pct":100,"veh_type":[{"label":"Motorcycle","value":30}],"gs_aware":[{"label":"Yes","value":7},{"label":"No","value":23}],"gs_aware_pct":23,"gs_has":[{"label":"No","value":30}],"gs_comply":[{"label":"Yes, willing","value":10},{"label":"No","value":20}],"gs_comply_hyp":[]},"tracker":{"rows":[{"uc":"Daroghawala","ward":"W-2","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Faisal Park(Shalimar)","ward":"W-4","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Fateh Garh","ward":"W-1","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Fateh Garh","ward":"W-4","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Fateh Garh","ward":"W-5","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Fateh Garh","ward":"W-6","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Harbans Pura","ward":"W-2","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Harbans Pura","ward":"W-5","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Harbans Pura","ward":"W-6","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Momin Pura","ward":"W-1","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Momin Pura","ward":"W-3","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Momin Pura","ward":"W-4","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Momin Pura","ward":"W-5","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Muslim Abad","ward":"W-1","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Muslim Abad","ward":"W-4","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Nabi Pura","ward":"W-1","target":10,"done":10,"attempts":15,"pct":100},{"uc":"Nabi Pura","ward":"W-4","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Nabi Pura","ward":"W-5","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Naseer Aabad","ward":"W-5","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Nishtar Town Daroghawala","ward":"W-5","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Rasheed Pura","ward":"W-3","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Salamat Pura","ward":"W-5","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Salamat Pura","ward":"W-6","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Siraj Pura","ward":"W-1","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Siraj Pura","ward":"W-2","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Siraj Pura","ward":"W-5","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Wara Sattar","ward":"W-1","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Wara Sattar","ward":"W-3","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Wara Sattar","ward":"W-5","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Wara Sattar","ward":"W-6","target":10,"done":0,"attempts":0,"pct":0},{"uc":"Daroghawala","ward":"W-5","target":0,"done":10,"attempts":15,"pct":0},{"uc":"Rasheed Pura","ward":"W-2","target":0,"done":10,"attempts":22,"pct":0}],"cards":[{"uc":"Nabi Pura","target":30,"done":10,"pct":33},{"uc":"Fateh Garh","target":40,"done":0,"pct":0},{"uc":"Momin Pura","target":40,"done":0,"pct":0},{"uc":"Wara Sattar","target":40,"done":0,"pct":0},{"uc":"Harbans Pura","target":30,"done":0,"pct":0},{"uc":"Siraj Pura","target":30,"done":0,"pct":0},{"uc":"Muslim Abad","target":20,"done":0,"pct":0},{"uc":"Salamat Pura","target":20,"done":0,"pct":0},{"uc":"Daroghawala","target":10,"done":0,"pct":0},{"uc":"Faisal Park(Shalimar)","target":10,"done":0,"pct":0},{"uc":"Naseer Aabad","target":10,"done":0,"pct":0},{"uc":"Nishtar Town Daroghawala","target":10,"done":0,"pct":0},{"uc":"Rasheed Pura","target":10,"done":0,"pct":0}],"frame_total":300,"done_total":30}};
+
+// ============================================================
+//  PASSWORD GATE
+// ============================================================
+function unlock(){
+  document.getElementById('auth-gate').style.display = 'none';
+  document.getElementById('site-content').style.display = 'block';
+  if (!window.__rendered) { renderAll(); window.__rendered = true; }
+}
+function checkAuth() {
+  var pw = document.getElementById('auth-pw').value;
+  var err = document.getElementById('auth-error');
+  if (pw === 'SABS2026_RS') {
+    try { sessionStorage.setItem('sabs_auth','1'); } catch(e){}
+    err.textContent = '';
+    unlock();
+  } else {
+    err.textContent = 'Incorrect password. Please try again.';
+    document.getElementById('auth-pw').value = '';
+    document.getElementById('auth-pw').focus();
+  }
+}
+try { if (sessionStorage.getItem('sabs_auth')==='1') window.addEventListener('DOMContentLoaded', unlock); } catch(e){}
+
+function showPanel(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============================================================
+//  CHART SETUP
+// ============================================================
+Chart.register(ChartDataLabels);
+const RED='#E8192C', NAVY='#2D3450', TEAL='#0891B2', AMBER='#F59E0B', PURPLE='#8B5CF6', GREEN='#16A34A';
+const PALETTE=[NAVY, RED, TEAL, AMBER, PURPLE, GREEN, '#6B7494', '#F47885'];
+const GRID='#f1f5f9';
+const FONT={family:'Inter'};
+
+function baseOpts(extra){
+  return Object.assign({
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{labels:{font:FONT, color:'#334155', boxWidth:14}}, datalabels:{display:false} }
+  }, extra||{});
+}
+const L = a => a.map(x=>x.label);
+const V = a => a.map(x=>x.value);
+function pctOf(a,b){ return b? Math.round(100*a/b):0; }
+const nz = x => (x==null? '—' : x);
+
+function wrapTick(label, max){
+  max = max || 14;
+  const words = String(label).split(/\s+/), lines = []; let line='';
+  for(const w of words){
+    if((line+' '+w).trim().length > max){ if(line) lines.push(line.trim()); line=w; }
+    else line = (line+' '+w);
+  }
+  if(line.trim()) lines.push(line.trim());
+  return lines;
+}
+
+function barChart(id, arr, color, horizontal, suffix){
+  const el=document.getElementById(id); if(!el || !arr || !arr.length) return;
+  const sfx = suffix||'';
+  const catTicks = {font:{family:'Inter',size:11},color:'#475569',autoSkip:false,maxRotation:0,minRotation:0,
+                    callback:function(v){ return wrapTick(this.getLabelForValue(v)); }};
+  const valTicks = {font:{family:'Inter',size:11},color:'#475569',callback:sfx?(v=>v+sfx):undefined};
+  new Chart(el,{type:'bar',
+    data:{labels:L(arr),datasets:[{data:V(arr),backgroundColor:color||NAVY,borderRadius:6,maxBarThickness:38}]},
+    options:baseOpts({indexAxis:horizontal?'y':'x',
+      plugins:{legend:{display:false},
+        datalabels:{display:true,anchor:'end',align:horizontal?'end':'top',offset:-2,clamp:true,
+                    color:'#334155',font:{family:'Inter',size:11,weight:'700'},formatter:v=>v+sfx}},
+      scales: horizontal
+        ? {x:{beginAtZero:true,grace:'12%',ticks:valTicks,grid:{color:GRID}}, y:{ticks:catTicks,grid:{display:false}}}
+        : {y:{beginAtZero:true,grace:'12%',ticks:valTicks,grid:{color:GRID}}, x:{ticks:catTicks,grid:{display:false}}}})});
+}
+
+function donutChart(id, arr, colors){
+  const el=document.getElementById(id); if(!el || !arr || !arr.length) return;
+  new Chart(el,{type:'doughnut',
+    data:{labels:L(arr),datasets:[{data:V(arr),backgroundColor:colors||PALETTE,borderWidth:2,borderColor:'#fff'}]},
+    options:baseOpts({cutout:'58%', plugins:{ legend:{position:'bottom',labels:{font:{family:'Inter',size:11},color:'#334155',boxWidth:12,padding:10}},
+      datalabels:{display:true,color:'#fff',font:{family:'Inter',size:12,weight:'700'},formatter:(v,c)=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);return v? Math.round(100*v/t)+'%':'';}} } }) });
+}
+
+function multiLine(id, labels, series){
+  // series: [{label, data, color}]
+  const el=document.getElementById(id); if(!el) return;
+  new Chart(el,{type:'line',
+    data:{labels:labels, datasets:series.map(s=>({label:s.label,data:s.data,borderColor:s.color,backgroundColor:s.color+'22',
+      fill:true,tension:.35,pointRadius:4,pointBackgroundColor:s.color,borderWidth:2.5}))},
+    options:baseOpts({plugins:{legend:{position:'bottom',labels:{font:FONT,color:'#334155',boxWidth:14}},datalabels:{display:false}},
+      scales:{y:{beginAtZero:true,ticks:{font:{family:'Inter',size:11},color:'#475569',precision:0},grid:{color:GRID}},
+              x:{ticks:{font:{family:'Inter',size:11},color:'#475569'},grid:{display:false}}}})});
+}
+
+function progressDonut(id, done, target){
+  const el=document.getElementById(id); if(!el) return;
+  const rem=Math.max(target-done,0);
+  new Chart(el,{type:'doughnut',
+    data:{labels:['Completed','Remaining'],datasets:[{data:[done,rem],backgroundColor:[RED,'#E8EAF2'],borderWidth:0}]},
+    options:baseOpts({cutout:'72%',plugins:{legend:{display:false},tooltip:{enabled:true},datalabels:{display:false}}}),
+    plugins:[{id:'center', afterDraw(c){const{ctx,chartArea}=c; ctx.save(); const x=(chartArea.left+chartArea.right)/2, y=(chartArea.top+chartArea.bottom)/2;
+      ctx.textAlign='center'; ctx.font='800 26px Inter'; ctx.fillStyle=NAVY; ctx.fillText(pctOf(done,target)+'%', x, y-4);
+      ctx.font='600 12px Inter'; ctx.fillStyle='#94a3b8'; ctx.fillText(done+' / '+target, x, y+16); ctx.restore();}}]});
+}
+
+function groupedBar(id, labels, series, suffix){
+  const sfx=suffix||'';
+  const el=document.getElementById(id); if(!el) return;
+  new Chart(el,{type:'bar',
+    data:{labels:labels, datasets:series.map((s,i)=>({label:s.label,data:s.data,backgroundColor:s.color||PALETTE[i],borderRadius:5,maxBarThickness:30}))},
+    options:baseOpts({plugins:{legend:{position:'bottom',labels:{font:FONT,color:'#334155',boxWidth:13}},
+      datalabels:{display:true,anchor:'end',align:'top',offset:-2,color:'#334155',font:{family:'Inter',size:10.5,weight:'700'},formatter:v=>v+sfx}},
+      scales:{x:{ticks:{font:{family:'Inter',size:11},color:'#475569',autoSkip:false,maxRotation:0,minRotation:0,callback:function(v){return wrapTick(this.getLabelForValue(v),16);}},grid:{display:false}},
+              y:{beginAtZero:true,grace:'14%',ticks:{font:{family:'Inter',size:11},color:'#475569'},grid:{color:GRID}}}})});
+}
+
+function demandChart(id, curve){
+  const el=document.getElementById(id); if(!el || !curve || !curve.length) return;
+  new Chart(el,{type:'line',
+    data:{labels:curve.map(c=>'PKR '+c.price), datasets:[{label:'% accepting initial bid', data:curve.map(c=>c.pct),
+      borderColor:RED, backgroundColor:'rgba(232,25,44,.08)', fill:true, tension:.3, pointRadius:6, pointBackgroundColor:RED, borderWidth:3}]},
+    options:baseOpts({plugins:{legend:{display:false},
+        datalabels:{display:true,align:'top',offset:6,color:NAVY,font:{family:'Inter',size:12,weight:'800'},formatter:v=>v+'%'},
+        tooltip:{callbacks:{label:c=>{const d=curve[c.dataIndex]; return d.pct+'% of offers accepted (n = '+d.n+' households)';}}}},
+      scales:{y:{beginAtZero:true,max:100,ticks:{font:{family:'Inter',size:11},color:'#475569',callback:v=>v+'%'},grid:{color:GRID}},
+              x:{ticks:{font:{family:'Inter',size:12,weight:'600'},color:'#334155'},grid:{display:false}}}})});
+}
+
+function kpi(icon,value,label,delta,deltaClass,cardClass){
+  return `<div class="kpi-card ${cardClass||''}"><div class="kpi-icon">${icon}</div>
+    <div class="kpi-value">${value}</div><div class="kpi-label">${label}</div>
+    ${delta?`<div class="kpi-delta ${deltaClass||'navy'}">${delta}</div>`:''}</div>`;
+}
+function callout(cls,icon,h,p){ return `<div class="callout ${cls}"><div class="callout-icon">${icon}</div><div class="callout-body"><h4>${h}</h4><p>${p}</p></div></div>`; }
+function topLabel(arr){ if(!arr||!arr.length) return '—'; return arr.reduce((p,c)=>c.value>p.value?c:p).label; }
+function topShare(arr){ if(!arr||!arr.length) return '—'; const t=arr.reduce((s,x)=>s+x.value,0)||1; const m=arr.reduce((p,c)=>c.value>p.value?c:p); return Math.round(100*m.value/t)+'%'; }
+
+function animateKpis(){
+  document.querySelectorAll('.kpi-value').forEach(el=>{
+    const txt = el.textContent;
+    const m = txt.match(/^([\d,]+(?:\.\d+)?)(.*)$/);
+    if(!m) return;
+    const target = parseFloat(m[1].replace(/,/g,'')), rest = m[2];
+    if(!isFinite(target)) return;
+    const dec = (m[1].split('.')[1]||'').length;
+    const t0 = performance.now(), dur = 900;
+    function tick(t){
+      const k = Math.min((t-t0)/dur, 1), eased = 1-Math.pow(1-k,3);
+      const v = target*eased;
+      el.textContent = v.toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec}) + rest;
+      if(k<1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
+}
+
+// ============================================================
+//  RENDER
+// ============================================================
+function renderAll(){
+  const D = DASHBOARD_DATA, m = D.meta;
+  document.getElementById('banner-updated').textContent = m.updated;
+  document.getElementById('footer-updated').textContent = 'Data through ' + m.updated;
+
+  // ---------- overview ----------
+  document.getElementById('ov-kpis').innerHTML =
+    kpi('🚪', m.attempts, 'Doorstep Attempts', m.days+' field day'+(m.days>1?'s':''), 'navy', 'navy') +
+    kpi('✅', m.completed, 'Completed Interviews', pctOf(m.completed,m.frame_total)+'% of '+m.frame_total+' frame', 'up', '') +
+    kpi('🤝', m.consent_rate+'%', 'Consent Rate', m.consented+' of '+m.attempts+' attempts', m.consent_rate>=60?'up':'neutral', 'teal') +
+    kpi('⏱️', m.avg_dur+' min', 'Avg Interview Length', 'completed interviews', 'navy', 'amber') +
+    kpi('🗺️', m.ucs_covered+' / '+m.frame_ucs, 'Union Councils Covered', m.tehsil+' Tehsil', 'navy', 'purple') +
+    kpi('🧑‍💼', m.enums, 'Enumerators in Field', 'active this pilot', 'navy', 'green');
+
+  document.getElementById('ov-callouts').innerHTML =
+    callout('primary','🧪','3-Arm Experiment Balanced', 'T1 = '+m.arms.t1+', T2 = '+m.arms.t2+', Control = '+m.arms.control+' completed — randomization is tracking evenly across arms.') +
+    callout('navy','📵','Refusals Concentrated in Trust', topLabel(D.ov.disposition.filter(x=>x.label!=='Completed'))+' is the most common non-complete outcome — worth addressing in enumerator scripts.') +
+    callout('teal','📱','100% Smartphone Access', 'Every consenting respondent uses a smartphone ('+m.smartphone_pct+'%), so the Smog Alert app module reaches the full sample.') +
+    callout('amber','⏱️','Long Instrument', 'Average completed interview runs '+m.avg_dur+' minutes — monitor fatigue in the belief and WTP modules.');
+
+  multiLine('chartDaily', D.ov.daily.map(x=>x.d),
+    [{label:'Attempts', data:D.ov.daily.map(x=>x.attempts), color:NAVY},
+     {label:'Completed', data:D.ov.daily.map(x=>x.completed), color:RED}]);
+  progressDonut('chartProgress', m.completed, m.frame_total);
+  donutChart('chartArms', D.ov.arms_donut, [NAVY, RED, TEAL]);
+  donutChart('chartStatus', D.ov.disposition, [GREEN, AMBER, RED, PURPLE, NAVY, TEAL, '#6B7494', '#F47885']);
+  groupedBar('chartUC', D.ov.by_uc.map(x=>x.label),
+    [{label:'Attempts', data:D.ov.by_uc.map(x=>x.attempts), color:NAVY},
+     {label:'Completed', data:D.ov.by_uc.map(x=>x.completed), color:RED}]);
+  barChart('chartDur', D.ov.duration_hist, TEAL);
+
+  document.getElementById('enum-body').innerHTML = D.ov.enum_table.map(r=>`
+    <tr><td class="mz-mauza">${r.name}</td><td class="num">${r.days}</td><td class="num">${r.attempts}</td>
+        <td class="num"><strong>${r.completed}</strong></td>
+        <td class="num"><span class="badge ${r.consent_pct>=60?'badge-green':r.consent_pct>=40?'badge-amber':'badge-red'}">${r.consent_pct}%</span></td>
+        <td class="num">${nz(r.avg_dur)}</td></tr>`).join('');
+
+  document.getElementById('ov-footnote').textContent =
+    'Sampling frame: '+m.frame_total+' households across '+m.frame_ucs+' union councils of '+m.tehsil+' Tehsil, Lahore (T1 / T2 / Control = 100 each). ' +
+    'Pilot fieldwork '+m.first_day+' – '+m.last_day+'. Data collected via SurveyCTO CAPI with GPS capture, audio audits and prefilled case assignments. ' +
+    'Study design & analysis by Research Solutions (M&A Research Solutions LLC) | www.rs.org.pk';
+
+  // ---------- demographics ----------
+  const dm = D.demo;
+  document.getElementById('dm-kpis').innerHTML =
+    kpi('🎂', dm.avg_age, 'Avg Respondent Age', 'years', 'navy', '') +
+    kpi('👨‍👩‍👧‍👦', dm.avg_hh, 'Avg Household Size', 'members', 'navy', 'navy') +
+    kpi('🚪', dm.avg_rooms, 'Avg Rooms per House', null, null, 'teal') +
+    kpi('🧓', dm.elderly_pct+'%', 'HHs with Elderly (60+)', 'in respondent care', 'neutral', 'amber') +
+    kpi('🧒', dm.children_pct+'%', 'HHs with Children (<15)', 'in respondent care', 'neutral', 'purple') +
+    kpi('🏡', dm.avg_years_nb, 'Avg Years in Neighborhood', 'residential stability', 'navy', 'green');
+  donutChart('chartGender', dm.gender, [NAVY, RED, PURPLE]);
+  barChart('chartAge', dm.age_hist, TEAL);
+  donutChart('chartMarital', dm.marital, [NAVY, TEAL, AMBER, RED]);
+  barChart('chartEdu', dm.education, NAVY, true);
+  barChart('chartOcc', dm.occupation, RED, true);
+  barChart('chartIncome', dm.income, AMBER);
+  barChart('chartIncSrc', dm.income_source, PURPLE, true);
+  donutChart('chartOwn', dm.ownership, [GREEN, NAVY, AMBER, '#6B7494']);
+  donutChart('chartFuel', dm.fuel, [NAVY, TEAL, AMBER, RED, PURPLE]);
+  barChart('chartAssets', dm.assets, TEAL, true);
+
+  // ---------- health ----------
+  const he = D.health;
+  document.getElementById('he-kpis').innerHTML =
+    kpi('🫁', he.resp_pct+'%', 'HHs with Respiratory Issues', 'last 12 months', he.resp_pct>=50?'down':'neutral', '') +
+    kpi('🏥', topShare(he.sought), 'Sought Medical Treatment', 'among all consenting HHs', 'navy', 'navy') +
+    kpi('💊', he.spend_mean!=null?('PKR '+he.spend_mean.toLocaleString()):'—', 'Avg Health Spending', 'past 12 months (n = '+he.spend_n+')', 'neutral', 'amber') +
+    kpi('👶', topLabel(he.affected), 'Seen as Most Affected', topShare(he.affected)+' of respondents', 'navy', 'teal');
+  donutChart('chartResp', he.resp_issues, [RED, '#6B7494']);
+  donutChart('chartSought', he.sought, [NAVY, '#94a3b8']);
+  donutChart('chartSpent', he.spent, [AMBER, '#94a3b8']);
+  barChart('chartSymp', he.symptoms, RED, true);
+  barChart('chartAllergy', he.allergy, PURPLE, true);
+  barChart('chartAffected', he.affected, NAVY, true);
+  barChart('chartPrevent', he.prevent, TEAL, true);
+  document.getElementById('he-footnote').textContent =
+    'Symptom and allergy items are multiple-response among households reporting issues. Health spending averaged over households reporting any expenditure (n = '+he.spend_n+'); median PKR '+nz(he.spend_med)+'.';
+
+  // ---------- awareness ----------
+  const aw = D.aware;
+  document.getElementById('aw-kpis').innerHTML =
+    kpi('📉', aw.worse_pct+'%', 'Say Air Got Worse', 'vs 5 years ago', aw.worse_pct>=50?'down':'neutral', '') +
+    kpi('📖', aw.aqi_pct+'%', 'Have Heard of AQI', 'Air Quality Index awareness', aw.aqi_pct>=50?'up':'neutral', 'navy') +
+    kpi('🚗', topLabel(aw.top_cause), 'Top Perceived Cause', topShare(aw.top_cause)+' rank it #1', 'navy', 'teal') +
+    kpi('❄️', topLabel(aw.season), 'Worst Season (Perceived)', topShare(aw.season)+' of respondents', 'navy', 'amber');
+  barChart('chartTrend', aw.trend, RED);
+  barChart('chartAttention', aw.attention, NAVY);
+  barChart('chartCauses', aw.causes, NAVY, true);
+  barChart('chartTopCause', aw.top_cause, RED, true);
+  donutChart('chartAqiHeard', aw.heard_aqi, [TEAL, '#94a3b8']);
+  barChart('chartAqiKnow', aw.aqi_know, PURPLE, true);
+  barChart('chartConf', aw.confidence, AMBER);
+  barChart('chartWeather', aw.weather, TEAL, true);
+  barChart('chartSeason', aw.season, NAVY, true);
+  donutChart('chartWeatherSmog', aw.weather_smog, [NAVY, RED, '#94a3b8']);
+
+  // ---------- info & trust ----------
+  const inf = D.info;
+  document.getElementById('in-kpis').innerHTML =
+    kpi('📺', topLabel(inf.sources), 'Top Information Source', 'most-cited AQ info channel', 'navy', '') +
+    kpi('🔔', inf.alert_pct+'%', 'Aware of Official Alerts', 'smog alerts / advisories', inf.alert_pct>=50?'up':'neutral', 'navy') +
+    kpi('🛡️', topLabel(inf.trusted_src), 'Most Trusted Source', topShare(inf.trusted_src)+' trust them most', 'navy', 'teal') +
+    kpi('🏛️', topLabel(inf.seriousness), 'Govt Seriousness (Modal View)', topShare(inf.seriousness)+' of respondents', 'navy', 'amber');
+  barChart('chartSources', inf.sources, NAVY, true);
+  barChart('chartFreq', inf.freq, TEAL, true);
+  barChart('chartChannel', inf.channel, PURPLE, true);
+  barChart('chartSerious', inf.seriousness, RED);
+  barChart('chartTrustInfo', inf.trust, NAVY);
+  barChart('chartTrustSrc', inf.trusted_src, TEAL, true);
+  barChart('chartAlertAware', inf.alert_aware, AMBER, true);
+
+  // ---------- app ----------
+  const ap = D.app;
+  document.getElementById('ap-kpis').innerHTML =
+    kpi('📲', ap.installed_n, 'Apps Installed at Doorstep', pctOf(ap.installed_n, m.consented)+'% of consenting HHs', ap.installed_n>0?'up':'neutral', '') +
+    kpi('🔗', ap.qr_n, 'Took QR — Will Install Later', 'potential later installs', 'neutral', 'navy') +
+    kpi('👍', ap.useful_pct+'%', 'Rate the App Useful', 'very / somewhat useful', ap.useful_pct>=60?'up':'neutral', 'teal') +
+    kpi('🔮', ap.would_use_pct+'%', 'Would Use in Future', 'definite yes', ap.would_use_pct>=50?'up':'neutral', 'amber') +
+    kpi('✨', ap.easy_pct+'%', 'Found It Easy to Use', 'very / somewhat easy', ap.easy_pct>=60?'up':'neutral', 'green');
+  const reach = ap.installed_n + ap.qr_n;
+  document.getElementById('ap-insight').innerHTML =
+    '<strong>App take-up:</strong> ' + ap.installed_n + ' households installed the Smog Alert app on the spot and another ' +
+    ap.qr_n + ' took the QR code to install later — a combined potential reach of <strong>' + reach + ' of ' + m.consented +
+    ' consenting households (' + pctOf(reach, m.consented) + '%)</strong>. Preferred delivery: <strong>' + topLabel(ap.type_pref) +
+    '</strong> alerts, <strong>' + topLabel(ap.freq_pref).toLowerCase() + '</strong>.';
+  barChart('chartAppDown', ap.downloaded, NAVY, true);
+  barChart('chartAppUseful', ap.usefulness, TEAL, true);
+  donutChart('chartAppUse', ap.would_use, [GREEN, RED, AMBER]);
+  barChart('chartAppEasy', ap.usability, PURPLE);
+  donutChart('chartAppSimilar', ap.seen_similar, [NAVY, '#94a3b8']);
+  barChart('chartAlertFreq', ap.freq_pref, RED, true);
+  barChart('chartAlertType', ap.type_pref, NAVY, true);
+  donutChart('chartForecast', ap.forecast, [GREEN, AMBER, '#94a3b8']);
+  barChart('chartPrefLoc', ap.pref_loc, TEAL, true);
+  barChart('chartPrefFreq', ap.pref_freq, AMBER);
+  barChart('chartPrefDetail', ap.pref_detail, NAVY, true);
+  donutChart('chartPrefApport', ap.pref_apport, [GREEN, AMBER, '#94a3b8']);
+
+  // ---------- avoidance ----------
+  const av = D.avoid;
+  const hoursDrop = (av.hours_low!=null && av.hours_high!=null) ? (av.hours_low - av.hours_high).toFixed(1) : null;
+  document.getElementById('av-kpis').innerHTML =
+    kpi('🔄', av.changed_pct+'%', 'Changed Behaviour', 'on high-pollution days (incl. sometimes)', av.changed_pct>=50?'up':'neutral', '') +
+    kpi('☀️', nz(av.hours_low)+' hrs', 'Outdoors — Clean Days', 'typical low-pollution day', 'navy', 'teal') +
+    kpi('🌫️', nz(av.hours_high)+' hrs', 'Outdoors — Smog Days', 'typical high-pollution day', 'down', 'amber') +
+    kpi('⬇️', hoursDrop!=null? hoursDrop+' hrs' : '—', 'Avoidance Gap', 'hours cut on smog days', 'down', 'navy') +
+    kpi('😷', topLabel(av.mask), 'Modal Mask Answer', topShare(av.mask)+' of respondents', 'navy', 'purple');
+  donutChart('chartChanged', av.changed, [GREEN, RED, AMBER]);
+  barChart('chartHours', [{label:'Low-pollution day', value:av.hours_low},{label:'High-pollution (smog) day', value:av.hours_high}], TEAL, false, ' hrs');
+  barChart('chartActions', av.actions, NAVY, true);
+  barChart('chartMask', av.mask, RED, true);
+  barChart('chartWindows', av.windows, AMBER);
+
+  // ---------- beliefs & experiment ----------
+  const be = D.beliefs;
+  document.getElementById('be-arms-box').innerHTML =
+    '<strong>Arms completed:</strong> T1 (Lahore-specific report, vehicles ≈ 83/100) = <strong>'+m.arms.t1+
+    '</strong> · T2 (Punjab-wide report, vehicles ≈ 43/100) = <strong>'+m.arms.t2+
+    '</strong> · Control (no information) = <strong>'+m.arms.control+'</strong>. '+
+    'Beliefs are elicited with 100 tokens across four sources, before and after the script.';
+  document.getElementById('be-kpis').innerHTML =
+    kpi('🚗', be.pre[0], 'Pre-Belief: Vehicle Tokens', 'mean of 100, all arms', 'navy', '') +
+    kpi('➡️', be.post[0], 'Post-Belief: Vehicle Tokens', 'mean of 100, all arms', (be.post[0]>be.pre[0]?'up':'down'), 'navy') +
+    kpi('💝', 'PKR '+nz(be.don_mean), 'Avg Donation (of 500)', be.don_pos_pct+'% donated something', 'up', 'teal') +
+    kpi('✍️', be.letter_pct+'%', 'Signed Enforcement Letter', 'to the Urban Unit', be.letter_pct>=50?'up':'neutral', 'amber') +
+    kpi('🧠', be.recall_n? pctOf(be.recall_exact,be.recall_n)+'%':'—', 'Accurate Recall (±5)', 'both script numbers, T1+T2', 'navy', 'purple');
+  groupedBar('chartPrePost', be.src_labels,
+    [{label:'Pre-treatment', data:be.pre, color:'#6B7494'},
+     {label:'Post-treatment', data:be.post, color:RED}]);
+  groupedBar('chartArmShift', be.by_arm_shift.map(x=>x.label),
+    [{label:'Pre', data:be.by_arm_shift.map(x=>x.pre), color:'#6B7494'},
+     {label:'Post', data:be.by_arm_shift.map(x=>x.post), color:NAVY}]);
+  donutChart('chartComp', be.comp_explain, [GREEN, AMBER, RED]);
+  barChart('chartDon', be.don_hist, TEAL);
+  barChart('chartDonArm', be.don_by_arm, PURPLE, false, '');
+  donutChart('chartLetter', be.letter_signed, [GREEN, '#94a3b8']);
+  barChart('chartLetterPri', be.letter_priority, NAVY, true);
+  document.getElementById('be-footnote').textContent =
+    'Belief shifts pool both treatment scripts; T1 pushes vehicle beliefs up (83/100) while T2 is closer to priors (43/100) — see the by-arm chart. '+
+    'Donation game is real-stakes: respondents allocate a PKR 500 endowment between themselves and air purifiers for schools. Recall accuracy = within ±5 tokens of the respondent\'s own script numbers for both vehicles and crop burning.';
+
+  // ---------- enforcement ----------
+  const en = D.enforce;
+  document.getElementById('en-kpis').innerHTML =
+    kpi('🏛️', topLabel(en.top_choice), 'Top Enforcement Priority', topShare(en.top_choice)+' choose it first', 'navy', '') +
+    kpi('⚖️', topLabel(en.resp_rank1), 'Most Responsible (Rank 1)', 'for reducing pollution', 'navy', 'navy') +
+    kpi('📣', en.report_pct+'%', 'Know Where to Report', 'pollution violations', en.report_pct>=30?'up':'down', 'teal') +
+    kpi('🏫', topShare(en.closures), 'Saw Smog Closures', 'schools / workplaces closed', 'neutral', 'amber');
+  barChart('chartGovtAct', en.govt_actions, NAVY, true);
+  barChart('chartEffect', en.effectiveness, RED, true);
+  barChart('chartTopEnf', en.top_choice, RED, true);
+  barChart('chartRespWho', en.resp_rank1, NAVY, true);
+  barChart('chartVehEnf', en.veh_enf, TEAL);
+  donutChart('chartLahoreResp', en.lahore_resp, [NAVY, RED, '#94a3b8']);
+  barChart('chartRespBelief', en.resp_belief, AMBER);
+  document.getElementById('en-callouts').innerHTML =
+    callout('navy','🏭','Factory Penalties', topShare(en.factory)+' answered "'+topLabel(en.factory)+'" on having heard of industries being penalized for pollution.') +
+    callout('amber','🔥','Crop-Burning Action', topShare(en.burning)+' answered "'+topLabel(en.burning)+'" on hearing of action against crop or waste burning.') +
+    callout('teal','🚦','Vehicle Checks', topShare(en.veh_enf)+' say they "'+topLabel(en.veh_enf).toLowerCase()+'" see emissions checking on the road.');
+  barChart('chartUnavoid', en.unavoidable, PURPLE);
+
+  // ---------- wtp & fairness ----------
+  const wt = D.wtp;
+  document.getElementById('wt-kpis').innerHTML =
+    kpi('💰', wt.any_yes_pct+'%', 'Accept ≥1 Program', 'at their initial bid', wt.any_yes_pct>=50?'up':'neutral', '') +
+    kpi('📈', (wt.curve[0]?wt.curve[0].pct:0)+'%', 'Acceptance at PKR '+(wt.curve[0]?wt.curve[0].price:'—'), 'lowest randomized bid', 'up', 'teal') +
+    kpi('📉', (wt.curve.length?wt.curve[wt.curve.length-1].pct:0)+'%', 'Acceptance at PKR '+(wt.curve.length?wt.curve[wt.curve.length-1].price:'—'), 'highest randomized bid', 'down', 'amber') +
+    kpi('🚗', wt.veh_owner_pct+'%', 'Own a Vehicle', 'car, motorcycle or rickshaw', 'navy', 'navy') +
+    kpi('🟢', wt.gs_aware_pct+'%', 'Aware of Green Sticker', 'emissions-testing program', wt.gs_aware_pct>=40?'up':'down', 'green');
+  demandChart('chartDemand', wt.curve);
+  barChart('chartVig', wt.vignettes, NAVY, true, '%');
+  barChart('chartProtest', wt.protest, RED, true);
+  barChart('chartFairDist', wt.fair_dist, NAVY, true);
+  donutChart('chartFairProc', wt.fair_proc, [GREEN, RED, '#94a3b8']);
+  barChart('chartFairEq', wt.fair_eq, TEAL, true);
+  donutChart('chartVehOwn', wt.veh_owner, [NAVY, '#94a3b8']);
+  donutChart('chartGsAware', wt.gs_aware, [GREEN, '#94a3b8']);
+  barChart('chartGsComply', wt.gs_comply, AMBER, true);
+  document.getElementById('wt-footnote').textContent =
+    'CVM design: four program vignettes (2 sources × monitoring/enforcement) in randomized order; the initial monthly bid (PKR 100/200/500) is randomized at the household level in the sampling frame, so acceptance differences across bids trace the demand curve. Protest reasons asked of households rejecting contributions (n = '+wt.protest_n+').';
+
+  // ---------- uc tracker ----------
+  buildUcPanel();
+  animateKpis();
+}
+
+// ============================================================
+//  UC TRACKER
+// ============================================================
+let ucSort = {key:'pct', dir:-1};
+
+function buildUcPanel(){
+  const D=DASHBOARD_DATA, m=D.meta, t=D.tracker;
+  document.getElementById('uc-kpis').innerHTML =
+    kpi('🏘️', t.frame_total, 'Sampled Households', 'across '+m.frame_ucs+' union councils', 'navy', 'navy') +
+    kpi('✅', t.done_total, 'Completed Interviews', pctOf(t.done_total,t.frame_total)+'% of frame', 'up', '') +
+    kpi('🗺️', m.ucs_covered, 'UCs Visited So Far', 'of '+m.frame_ucs+' in frame', 'neutral', 'teal') +
+    kpi('🎯', t.rows.filter(r=>r.target&&r.done>=r.target).length, 'Wards Fully Complete', 'of '+t.rows.filter(r=>r.target>0).length+' frame wards', 'navy', 'green');
+
+  document.getElementById('uc-cards').innerHTML = t.cards.map(r=>{
+    const pct=Math.min(r.pct,100), col=barColor(r.pct);
+    return `<div class="land-card"><div class="lc-bin">${r.uc}</div>
+      <div class="lc-frac">${r.done} <span class="lc-tgt">/ ${r.target}</span></div>
+      <div class="lc-track"><span style="width:${pct}%;background:${col}"></span></div>
+      <div class="lc-foot"><span class="lc-pct" style="color:${col}">${r.pct}%</span><span style="color:#94a3b8">${r.target-r.done>0?(r.target-r.done)+' left':'done'}</span></div></div>`;
+  }).join('');
+
+  const ucs=[...new Set(t.rows.map(r=>r.uc))].sort();
+  const sel=document.getElementById('uc-ucsel');
+  sel.innerHTML='<option value="all">All UCs</option>'+ucs.map(u=>`<option>${u}</option>`).join('');
+
+  document.querySelectorAll('#uc-table th').forEach(th=>{
+    th.onclick=()=>{ const k=th.dataset.sort; if(ucSort.key===k) ucSort.dir*=-1; else {ucSort.key=k; ucSort.dir=(k==='uc'||k==='ward'||k==='status')?1:-1;} updateUcArrows(); renderUcTable(); };
+  });
+  updateUcArrows();
+  renderUcTable();
+}
+
+function rowStatus(r){
+  if(r.target && r.done>=r.target) return 'Completed';
+  if(r.done>0) return 'In Progress';
+  return 'Not Started';
+}
+function statusBadge(s){
+  return s==='Completed' ? '<span class="badge badge-green">Completed</span>'
+       : s==='In Progress' ? '<span class="badge badge-amber">In Progress</span>'
+       : '<span class="badge badge-grey">Not Started</span>';
+}
+function barColor(p){ return p>=100?GREEN : p>=50?AMBER : p>0?RED : '#cbd5e1'; }
+
+function filteredUcRows(){
+  const t=DASHBOARD_DATA.tracker;
+  const q=(document.getElementById('uc-search').value||'').toUpperCase().replace(/\s/g,'');
+  const st=document.getElementById('uc-status').value;
+  const uc=document.getElementById('uc-ucsel').value;
+  let rows=t.rows.filter(r=>{
+    const hay=(r.uc+r.ward).toUpperCase().replace(/\s/g,'');
+    if(q && !hay.includes(q)) return false;
+    const s=rowStatus(r);
+    if(st==='started' && r.done===0) return false;
+    if(['In Progress','Completed','Not Started'].includes(st) && s!==st) return false;
+    if(uc!=='all' && r.uc!==uc) return false;
+    return true;
+  });
+  const k=ucSort.key, dir=ucSort.dir;
+  rows.sort((a,b)=>{
+    let va,vb;
+    if(k==='status'){ va=rowStatus(a); vb=rowStatus(b); }
+    else { va=a[k]; vb=b[k]; }
+    if(typeof va==='string') return va.localeCompare(vb)*dir;
+    return ((va||0)-(vb||0))*dir;
+  });
+  return rows;
+}
+function updateUcArrows(){
+  document.querySelectorAll('#uc-table th').forEach(th=>{
+    const a=th.querySelector('.arrow');
+    if(a) a.textContent = th.dataset.sort===ucSort.key ? (ucSort.dir>0?'▲':'▼') : '';
+  });
+}
+function renderUcTable(){
+  const rows=filteredUcRows();
+  const body=document.getElementById('uc-body');
+  body.innerHTML=rows.map(r=>{
+    const pct=Math.min(r.pct,100), col=barColor(r.pct), s=rowStatus(r);
+    return `<tr><td class="mz-mauza">${r.uc}</td><td class="mz-tehsil">${r.ward}</td>
+      <td class="num">${r.attempts||''}</td>
+      <td class="num mz-frac"><span class="done">${r.done}</span></td>
+      <td class="num"><span class="tgt">${r.target}</span></td>
+      <td><span class="mz-bar"><span style="width:${pct}%;background:${col}"></span></span><span class="mz-pct" style="color:${col}">${r.pct}%</span></td>
+      <td>${statusBadge(s)}</td></tr>`;
+  }).join('');
+  document.getElementById('uc-count').textContent = rows.length+' ward'+(rows.length===1?'':'s');
+}
+function exportUcCSV(){
+  const rows=filteredUcRows();
+  const esc = s => '"'+String(s).replace(/"/g,'""')+'"';
+  const csv=[['Union Council','Ward','Attempts','Completed','Sampled Target','Completion %','Status'].map(esc).join(',')]
+    .concat(rows.map(r=>[r.uc,r.ward,r.attempts,r.done,r.target,r.pct,rowStatus(r)].map(esc).join(','))).join('\n');
+  const blob=new Blob(["﻿"+csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='uc_tracker.csv'; a.click();
+  URL.revokeObjectURL(a.href);
+}
+</script>
+</body>
+</html>
