@@ -33,9 +33,9 @@
     .header-meta strong { color:rgba(255,255,255,.9); font-size:13px; }
     .header-pill { display:inline-block; background:var(--rs-red); color:#fff; font-size:10px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; padding:3px 10px; border-radius:99px; margin-top:4px; }
 
-    .nav-tabs { display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; }
+    .nav-tabs { display:flex; flex-wrap:wrap; gap:2px; overflow-x:visible; scrollbar-width:none; }
     .nav-tabs::-webkit-scrollbar { display:none; }
-    .nav-tab { padding:10px 15px; font-size:12.5px; font-weight:500; color:rgba(255,255,255,.55); cursor:pointer; border-radius:8px 8px 0 0; border:none; background:transparent; white-space:nowrap; transition:all .2s; letter-spacing:.2px; font-family:'Inter',sans-serif; }
+    .nav-tab { padding:9px 11px; font-size:12px; font-weight:500; color:rgba(255,255,255,.55); cursor:pointer; border-radius:8px 8px 0 0; border:none; background:transparent; white-space:nowrap; transition:all .2s; letter-spacing:.2px; font-family:'Inter',sans-serif; }
     .nav-tab:hover { color:rgba(255,255,255,.9); background:rgba(255,255,255,.06); }
     .nav-tab.active { color:var(--rs-navy); background:var(--rs-cream); font-weight:700; border-top:2px solid var(--rs-red); }
 
@@ -260,8 +260,8 @@
     <div class="callout-row" id="ov-callouts"></div>
     <div class="chart-grid cols-2">
       <div class="chart-card full">
-        <h3>Daily Field Activity</h3>
-        <div class="chart-desc">Doorstep attempts vs completed interviews per field day</div>
+        <h3>Daily Completed Interviews</h3>
+        <div class="chart-desc">Number of completed interviews per field day</div>
         <div class="chart-wrap"><canvas id="chartDaily"></canvas></div>
       </div>
     </div>
@@ -284,8 +284,8 @@
     </div>
     <div class="chart-grid cols-2">
       <div class="chart-card">
-        <h3>Attempts &amp; Completions by Union Council</h3>
-        <div class="chart-desc">Field coverage by UC visited so far</div>
+        <h3>Completions by Union Council</h3>
+        <div class="chart-desc">% of doorstep attempts completed in each UC (completed / attempts)</div>
         <div class="chart-wrap"><canvas id="chartUC"></canvas></div>
       </div>
       <div class="chart-card">
@@ -744,8 +744,9 @@ function multiLine(id, labels, series){
   new Chart(el,{type:'line',
     data:{labels:labels, datasets:series.map(s=>({label:s.label,data:s.data,borderColor:s.color,backgroundColor:s.color+'22',
       fill:true,tension:.35,pointRadius:4,pointBackgroundColor:s.color,borderWidth:2.5}))},
-    options:baseOpts({plugins:{legend:{position:'bottom',labels:{font:FONT,color:'#334155',boxWidth:14}},datalabels:{display:false}},
-      scales:{y:{beginAtZero:true,ticks:{font:{family:'Inter',size:11},color:'#475569',precision:0},grid:{color:GRID}},
+    options:baseOpts({plugins:{legend:{display:series.length>1,position:'bottom',labels:{font:FONT,color:'#334155',boxWidth:14}},
+        datalabels:{display:series.length===1,align:'top',offset:4,color:'#334155',font:{family:'Inter',size:11,weight:'700'}}},
+      scales:{y:{beginAtZero:true,grace:'10%',ticks:{font:{family:'Inter',size:11},color:'#475569',precision:0},grid:{color:GRID}},
               x:{ticks:{font:{family:'Inter',size:11},color:'#475569'},grid:{display:false}}}})});
 }
 
@@ -825,8 +826,7 @@ function renderAll(){
     kpi('✅', m.completed, 'Completed Interviews', pctOf(m.completed,m.frame_total)+'% of '+m.frame_total+' frame', 'up', '') +
     kpi('🤝', m.consent_rate+'%', 'Consent Rate', m.consented+' of '+m.attempts+' attempts', m.consent_rate>=60?'up':'neutral', 'teal') +
     kpi('⏱️', m.avg_dur+' min', 'Avg Interview Length', 'completed interviews', 'navy', 'amber') +
-    kpi('🗺️', m.ucs_covered+' / '+m.frame_ucs, 'Union Councils Covered', m.tehsil+' Tehsil', 'navy', 'purple') +
-    kpi('🧑‍💼', m.enums, 'Enumerators in Field', 'active this pilot', 'navy', 'green');
+    kpi('🗺️', m.ucs_covered+' / '+m.frame_ucs, 'Union Councils Covered', m.tehsil+' Tehsil', 'navy', 'purple');
 
   document.getElementById('ov-callouts').innerHTML =
     callout('primary','🧪','3-Arm Experiment Balanced', 'T1 = '+m.arms.t1+', T2 = '+m.arms.t2+', Control = '+m.arms.control+' completed — randomization is tracking evenly across arms.') +
@@ -835,14 +835,11 @@ function renderAll(){
     callout('amber','⏱️','Long Instrument', 'Average completed interview runs '+m.avg_dur+' minutes — monitor fatigue in the belief and WTP modules.');
 
   multiLine('chartDaily', D.ov.daily.map(x=>x.d),
-    [{label:'Attempts', data:D.ov.daily.map(x=>x.attempts), color:NAVY},
-     {label:'Completed', data:D.ov.daily.map(x=>x.completed), color:RED}]);
+    [{label:'Completed', data:D.ov.daily.map(x=>x.completed), color:RED}]);
   progressDonut('chartProgress', m.completed, m.frame_total);
   donutChart('chartArms', D.ov.arms_donut, [NAVY, RED, TEAL]);
   donutChart('chartStatus', D.ov.disposition, [GREEN, AMBER, RED, PURPLE, NAVY, TEAL, '#6B7494', '#F47885']);
-  groupedBar('chartUC', D.ov.by_uc.map(x=>x.label),
-    [{label:'Attempts', data:D.ov.by_uc.map(x=>x.attempts), color:NAVY},
-     {label:'Completed', data:D.ov.by_uc.map(x=>x.completed), color:RED}]);
+  barChart('chartUC', D.ov.by_uc.map(x=>({label:x.label+' ('+x.completed+'/'+x.attempts+')', value:pctOf(x.completed,x.attempts)})), NAVY, true, '%');
   barChart('chartDur', D.ov.duration_hist, TEAL);
 
   document.getElementById('enum-body').innerHTML = D.ov.enum_table.map(r=>`
