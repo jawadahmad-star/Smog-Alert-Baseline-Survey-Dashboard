@@ -74,6 +74,8 @@
     .chart-card.full { grid-column:1/-1; }
     .chart-card h3 { font-size:14.5px; font-weight:700; color:var(--rs-navy); margin-bottom:4px; padding-left:10px; border-left:3px solid var(--rs-red); }
     .chart-desc { font-size:12px; color:var(--n-600); margin:6px 0 18px 13px; line-height:1.5; }
+    .chart-wrap { position:relative; height:280px; }
+    .chart-wrap.tall { height:360px; }
     .chart-wrap canvas { max-height:280px; }
     .chart-wrap.tall canvas { max-height:360px; }
 
@@ -642,7 +644,13 @@ const DASHBOARD_DATA = {"meta":{"updated":"12 July 2026","first_day":"09 Jul 202
 function unlock(){
   document.getElementById('auth-gate').style.display = 'none';
   document.getElementById('site-content').style.display = 'block';
-  if (!window.__rendered) { renderAll(); window.__rendered = true; }
+  if (!window.__rendered) {
+    window.__rendered = true;
+    // wait for webfonts so Chart.js measures labels with the real font (avoids clipped axis labels)
+    var ready = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+    var t = setTimeout(function(){ if(!window.__charted){ window.__charted = true; renderAll(); } }, 1500);
+    ready.then(function(){ clearTimeout(t); if(!window.__charted){ window.__charted = true; renderAll(); } });
+  }
 }
 function checkAuth() {
   var pw = document.getElementById('auth-pw').value;
@@ -664,6 +672,12 @@ function showPanel(id, btn) {
   document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
   document.getElementById('panel-' + id).classList.add('active');
   btn.classList.add('active');
+  // charts created while their panel was hidden have 0×0 size — force a proper resize on reveal
+  requestAnimationFrame(function(){
+    document.querySelectorAll('#panel-' + id + ' canvas').forEach(function(cv){
+      var c = Chart.getChart(cv); if (c) c.resize();
+    });
+  });
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -707,6 +721,7 @@ function barChart(id, arr, color, horizontal, suffix){
   new Chart(el,{type:'bar',
     data:{labels:L(arr),datasets:[{data:V(arr),backgroundColor:color||NAVY,borderRadius:6,maxBarThickness:38}]},
     options:baseOpts({indexAxis:horizontal?'y':'x',
+      layout:{padding:{left:horizontal?12:0, right:horizontal?18:0}},
       plugins:{legend:{display:false},
         datalabels:{display:true,anchor:'end',align:horizontal?'end':'top',offset:-2,clamp:true,
                     color:'#334155',font:{family:'Inter',size:11,weight:'700'},formatter:v=>v+sfx}},
