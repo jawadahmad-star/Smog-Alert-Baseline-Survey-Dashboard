@@ -218,7 +218,7 @@
       <div class="header-meta">
         <strong>Pakistan · Lahore District</strong><br>
         <span id="meta-line">Shalamar Tehsil · Household Baseline</span><br>
-        <span class="header-pill" id="meta-pill">Pilot Tracker</span>
+        <span class="header-pill" id="meta-pill">Live Tracker</span>
       </div>
     </div>
     <nav class="nav-tabs" id="navTabs">
@@ -239,8 +239,8 @@
 
 <div class="live-banner">
   <span class="live-dot"></span>
-  <span class="live-pill">Pilot Data</span>
-  <span>This dashboard reflects <strong style="color:#fff;">real household-survey field data</strong> from the pilot. Last updated <strong id="banner-updated" style="color:#fff;">—</strong>.</span>
+  <span class="live-pill">Live Data</span>
+  <span>This dashboard reflects <strong style="color:#fff;">real household-survey field data</strong> from ongoing fieldwork, updated daily. Last updated <strong id="banner-updated" style="color:#fff;">—</strong>.</span>
   <span class="live-pill" id="banner-pill">SurveyCTO CAPI</span>
 </div>
 
@@ -858,7 +858,7 @@ function renderAll(){
 
   document.getElementById('ov-footnote').textContent =
     'Sampling frame: '+m.frame_total+' households across '+m.frame_ucs+' union councils of '+m.tehsil+' Tehsil, Lahore (T1 / T2 / Control = 100 each). ' +
-    'Pilot fieldwork '+m.first_day+' – '+m.last_day+'. Data collected via SurveyCTO CAPI with GPS capture, audio audits and prefilled case assignments. ' +
+    'Fieldwork '+m.first_day+' – '+m.last_day+'. Data collected via SurveyCTO CAPI with GPS capture, audio audits and prefilled case assignments. ' +
     'Study design & analysis by Research Solutions (M&A Research Solutions LLC) | www.rs.org.pk';
 
   // ---------- demographics ----------
